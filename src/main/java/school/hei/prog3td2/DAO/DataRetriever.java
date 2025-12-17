@@ -1,6 +1,5 @@
 package school.hei.prog3td2.DAO;
 
-
 import school.hei.prog3td2.model.CategoryEnum;
 import school.hei.prog3td2.model.Dish;
 import school.hei.prog3td2.model.DishEnum;
@@ -11,17 +10,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DataRetriever {
     DBConnection dbConnection = new DBConnection();
+
     public Dish findDishById(Integer id) throws SQLException {
-     String sql ="""
-             SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,
-             i.id AS ingredient_id, i.name AS ingredient_name, i.price AS ingredient_price, i.category AS ingredient_category
-             FROM dish d
-             JOIN ingredient i ON d.id = i.id_dish
-             WHERE d.id = ?
-             """;
+        String sql = """
+                SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,
+                i.id AS ingredient_id, i.name AS ingredient_name, i.price AS ingredient_price, i.category AS ingredient_category
+                FROM dish d
+                JOIN ingredient i ON d.id = i.id_dish
+                WHERE d.id = ?
+                """;
 
         PreparedStatement statement = dbConnection.getDBConnection().prepareStatement(sql);
         statement.setInt(1, id);
@@ -37,7 +38,6 @@ public class DataRetriever {
                         new ArrayList<>()
                 );
             }
-
             Ingredient ingredient = new Ingredient(
                     resultSet.getInt("ingredient_id"),
                     resultSet.getString("ingredient_name"),
@@ -45,12 +45,44 @@ public class DataRetriever {
                     CategoryEnum.valueOf(resultSet.getString("ingredient_category")),
                     dish
             );
-
             dish.getIngredients().add(ingredient);
         }
-
         return dish;
     }
 
-
+    public List<Ingredient> findIngredients(int page, int size) {
+        String sql = """
+                SELECT i.id AS ingredient_id, i.name AS ingredient_name, i.price AS ingredient_price, i.category AS ingredient_category,
+                d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
+                FROM ingredient i
+                JOIN dish d ON i.id_dish = d.id
+                LIMIT ? OFFSET ?
+                """;
+        List<Ingredient> ingredients = new ArrayList<>();
+        try {
+            PreparedStatement statement = dbConnection.getDBConnection().prepareStatement(sql);
+            statement.setInt(1, size);
+            statement.setInt(2, (page - 1) * size);
+            ResultSet resultSet = statement.executeQuery();
+    while(resultSet.next()){
+                Dish dish = new Dish(
+                        resultSet.getInt("dish_id"),
+                        resultSet.getString("dish_name"),
+                        DishEnum.valueOf(resultSet.getString("dish_type")),
+                        null
+                );
+                Ingredient ingredient = new Ingredient(
+                        resultSet.getInt("ingredient_id"),
+                        resultSet.getString("ingredient_name"),
+                        resultSet.getDouble("ingredient_price"),
+                        CategoryEnum.valueOf(resultSet.getString("ingredient_category")),
+                        dish
+                );
+                ingredients.add(ingredient);
+    }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return ingredients;
+    }
 }
