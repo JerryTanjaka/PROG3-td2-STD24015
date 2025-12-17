@@ -13,7 +13,9 @@ GRANT CONNECT ON DATABASE mini_dish_db TO mini_dish_db_manager;
 GRANT CREATE ON DATABASE mini_dish_db TO mini_dish_db_manager;
 
 -- Attribution des privilèges à l'utilisateur
-GRANT select,update,insert,delete  ON  TO product_manager_user;
+GRANT select,update,insert,delete  ON Dish TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON Ingredient TO mini_dish_db_manager;
+
 
 
 
