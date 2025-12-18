@@ -1,5 +1,7 @@
 package school.hei.prog3td2.model;
 
+import java.util.Objects;
+
 public class Ingredient {
     private int id;
     private String name;
@@ -68,5 +70,17 @@ public class Ingredient {
                 ", price=" + price +
                 ", dishName=" + getDishName() +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Ingredient that = (Ingredient) o;
+        return id == that.id && Objects.equals(name, that.name) && Objects.equals(price, that.price) && categoryEnum == that.categoryEnum && Objects.equals(dish, that.dish);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, price, categoryEnum, dish);
     }
 }

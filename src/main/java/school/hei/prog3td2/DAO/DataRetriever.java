@@ -6,11 +6,15 @@ import school.hei.prog3td2.model.DishEnum;
 import school.hei.prog3td2.model.Ingredient;
 import school.hei.prog3td2.util.DBConnection;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DataRetriever {
     DBConnection dbConnection = new DBConnection();
@@ -85,4 +89,51 @@ public class DataRetriever {
         }
         return ingredients;
     }
+
+
+    public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
+        String selectSql = """
+        SELECT i.name FROM ingredient i
+        """;
+
+        String insertSql = """
+        INSERT INTO ingredient (name, price, category, id_dish)
+        VALUES (?, ?, ?::category_type, ?)
+        """;
+
+        try (Connection connection = dbConnection.getDBConnection()) {
+            connection.setAutoCommit(false);
+            Set<String> dbIngredientNames = new HashSet<>();
+            try (PreparedStatement ps = connection.prepareStatement(selectSql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    dbIngredientNames.add(rs.getString("name").toLowerCase());
+                }
+            }
+            for (Ingredient newIng : newIngredients) {
+                if (dbIngredientNames.contains(newIng.getName().toLowerCase())) {
+                    throw new RuntimeException(
+                            "Ingredient already exists: " + newIng.getName()
+                    );
+                }
+            }
+            try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
+                for (Ingredient newIng : newIngredients) {
+                    ps.setString(1, newIng.getName());
+                    ps.setDouble(2, newIng.getPrice());
+                    ps.setString(3, newIng.getCategoryEnum().name());
+                    ps.setObject(4, null);
+
+                    ps.executeUpdate();
+                }
+            }
+            connection.commit();
+            return newIngredients;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
