@@ -62,6 +62,7 @@ public class DataRetriever {
                 JOIN dish d ON i.id_dish = d.id
                 LIMIT ? OFFSET ?
                 """;
+
         List<Ingredient> ingredients = new ArrayList<>();
         try {
             PreparedStatement statement = dbConnection.getDBConnection().prepareStatement(sql);
@@ -93,13 +94,13 @@ public class DataRetriever {
 
     public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
         String selectSql = """
-        SELECT i.name FROM ingredient i
-        """;
+            SELECT i.name FROM ingredient i
+            """;
 
         String insertSql = """
-        INSERT INTO ingredient (name, price, category, id_dish)
-        VALUES (?, ?, ?::category_type, ?)
-        """;
+            INSERT INTO ingredient (name, price, category, id_dish)
+            VALUES (?, ?, ?::category_type, ?)
+            """;
 
         try (Connection connection = dbConnection.getDBConnection()) {
             connection.setAutoCommit(false);
@@ -137,28 +138,28 @@ public class DataRetriever {
     }
     public Dish saveDish(Dish dishToSave) {
         String insertDishSql = """
-        INSERT INTO dish (name, dish_type)
-        VALUES (?, ?::dish_type)
-        RETURNING id
-        """;
+            INSERT INTO dish (name, dish_type)
+            VALUES (?, ?::dish_type)
+            RETURNING id
+            """;
 
         String updateDishSql = """
-        UPDATE dish
-        SET name = ?, dish_type = ?::dish_type
-        WHERE id = ?
-        """;
+            UPDATE dish
+            SET name = ?, dish_type = ?::dish_type
+            WHERE id = ?
+            """;
 
         String clearIngredientsSql = """
-        UPDATE ingredient
-        SET id_dish = NULL
-        WHERE id_dish = ?
-        """;
+            UPDATE ingredient
+            SET id_dish = NULL
+            WHERE id_dish = ?
+            """;
 
         String linkIngredientSql = """
-        UPDATE ingredient
-        SET id_dish = ?
-        WHERE id = ?
-        """;
+            UPDATE ingredient
+            SET id_dish = ?
+            WHERE id = ?
+            """;
 
         try (Connection connection = dbConnection.getDBConnection()) {
             connection.setAutoCommit(false);
@@ -181,12 +182,10 @@ public class DataRetriever {
                     ps.executeUpdate();
                 }
             }
-
             try (PreparedStatement ps = connection.prepareStatement(clearIngredientsSql)) {
                 ps.setInt(1, dishToSave.getId());
                 ps.executeUpdate();
             }
-
             if (dishToSave.getIngredients() != null) {
                 try (PreparedStatement ps = connection.prepareStatement(linkIngredientSql)) {
                     for (Ingredient ingredient : dishToSave.getIngredients()) {
@@ -196,12 +195,17 @@ public class DataRetriever {
                     }
                 }
             }
-
             connection.commit();
             return dishToSave;
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+    public List<Dish> findDishByIngredientName (String ingredientName){
+        String selectSql= """
+                
+                """;
+    return new ArrayList<>();
+    }
 }
+
