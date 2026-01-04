@@ -202,10 +202,31 @@ public class DataRetriever {
         }
     }
     public List<Dish> findDishByIngredientName (String ingredientName){
-        String selectSql= """
-                
+        String selectDishName= """
+                SELECT i.name, i.id_dish, d.name AS dish_name, d.dish_type AS dish_type 
+                FROM dish d
+                JOIN ingredient i ON d.id = i.id_dish
+                WHERE i.name = ?
                 """;
-    return new ArrayList<>();
+        List<Dish>dishList = new ArrayList<>();
+        try (Connection connection = dbConnection.getDBConnection()) {
+            try(PreparedStatement ps = connection.prepareStatement(selectDishName)) {
+                ps.setString(1,ingredientName);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()){
+                    Dish dish = new Dish(
+                        rs.getInt("id_dish"),
+                        rs.getString("dish_name"),
+                        DishEnum.valueOf(rs.getString("dish_type")),
+                        null
+                );
+                dishList.add(dish);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    return dishList;
     }
 }
 
