@@ -17,6 +17,7 @@ GRANT select,update,insert,delete  ON Dish TO mini_dish_db_manager;
 GRANT select,update,insert,delete  ON Ingredient TO mini_dish_db_manager;
 
 GRANT USAGE, SELECT, UPDATE ON SEQUENCE ingredient_id_seq TO mini_dish_db_manager;
+GRANT USAGE, SELECT ON SEQUENCE dish_id_seq TO mini_dish_db_manager;
 
 
 

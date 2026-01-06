@@ -364,7 +364,7 @@ public class DataRetriever {
         }
 
         if (category != null) {
-            sql.append(" AND i.category = ?::ingredient_category_enum");
+            sql.append(" AND i.category = ?::category_type");
             params.add(category.toString());
         }
 
@@ -413,6 +413,4 @@ public class DataRetriever {
             }
         }
     }
-
-
 }
