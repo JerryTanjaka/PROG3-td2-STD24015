@@ -303,7 +303,7 @@ public class DataRetriever {
 
         String sql = """
             SELECT DISTINCT d.id, d.name, d.dish_type
-            FROM "Dish" d
+            FROM dish d
             JOIN ingredient i ON d.id = i.id_dish
             WHERE i.name ILIKE ?
             """;
@@ -348,8 +348,8 @@ public class DataRetriever {
 
         StringBuilder sql = new StringBuilder("""
             SELECT i.id, i.name, i.price, i.category
-            FROM "Ingredient" i
-            LEFT JOIN "Dish" d ON i.id_dish = d.id
+            FROM ingredient i
+            LEFT JOIN dish d ON i.id_dish = d.id
             WHERE 1 = 1
             """);
 
