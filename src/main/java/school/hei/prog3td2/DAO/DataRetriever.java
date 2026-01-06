@@ -56,6 +56,9 @@ public class DataRetriever {
 
                 dish.getIngredients().add(ingredient);
             }
+            if (dish == null) {
+                throw new RuntimeException("Dish not found with id " + id);
+            }
             return dish;
 
         } catch (SQLException e) {
@@ -74,7 +77,7 @@ public class DataRetriever {
                    i.price AS ingredient_price, i.category AS ingredient_category,
                    d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
             FROM ingredient i
-            JOIN dish d ON i.id_dish = d.id
+            LEFT JOIN dish d ON i.id_dish = d.id
             LIMIT ? OFFSET ?
             """;
 
