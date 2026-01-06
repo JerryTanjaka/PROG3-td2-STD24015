@@ -64,9 +64,11 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            try { if (resultSet != null) resultSet.close(); } catch (SQLException ignored) {}
-            try { if (statement != null) statement.close(); } catch (SQLException ignored) {}
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (statement != null) statement.close();
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -117,9 +119,11 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            try { if (resultSet != null) resultSet.close(); } catch (SQLException ignored) {}
-            try { if (statement != null) statement.close(); } catch (SQLException ignored) {}
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (resultSet != null) resultSet.close();
+                if (statement != null) statement.close();
+                if (statement != null) statement.close();
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -169,10 +173,12 @@ public class DataRetriever {
             try { if (connection != null) connection.rollback(); } catch (SQLException ignored) {}
             throw new RuntimeException(e);
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ignored) {}
-            try { if (selectPs != null) selectPs.close(); } catch (SQLException ignored) {}
-            try { if (insertPs != null) insertPs.close(); } catch (SQLException ignored) {}
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (rs != null) rs.close();
+                if (selectPs != null) selectPs.close();
+                if (insertPs != null) insertPs.close();
+                if (connection != null) connection.close();
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -251,9 +257,11 @@ public class DataRetriever {
             try { if (connection != null) connection.rollback(); } catch (SQLException ignored) {}
             throw new RuntimeException(e);
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ignored) {}
-            try { if (ps != null) ps.close(); } catch (SQLException ignored) {}
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -291,9 +299,11 @@ public class DataRetriever {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ignored) {}
-            try { if (ps != null) ps.close(); } catch (SQLException ignored) {}
-            try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (connection != null) connection.close();
+            } catch (SQLException ignored){}
         }
     }
 
