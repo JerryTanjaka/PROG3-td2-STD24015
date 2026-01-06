@@ -75,13 +75,13 @@ public class DataRetriever {
     public List<Ingredient> findIngredients(int page, int size) {
 
         String sql = """
-            SELECT i.id AS ingredient_id, i.name AS ingredient_name,
-                   i.price AS ingredient_price, i.category AS ingredient_category,
-                   d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
-            FROM ingredient i
-            LEFT JOIN dish d ON i.id_dish = d.id
-            LIMIT ? OFFSET ?
-            """;
+        SELECT i.id AS ingredient_id, i.name AS ingredient_name,
+               i.price AS ingredient_price, i.category AS ingredient_category,
+               d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
+        FROM ingredient i
+        LEFT JOIN dish d ON i.id_dish = d.id
+        LIMIT ? OFFSET ?
+        """;
 
         Connection connection = null;
         PreparedStatement statement = null;
@@ -97,12 +97,20 @@ public class DataRetriever {
             resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                Dish dish = new Dish(
-                        resultSet.getInt("dish_id"),
-                        resultSet.getString("dish_name"),
-                        DishEnum.valueOf(resultSet.getString("dish_type")),
-                        null
-                );
+                Dish dish = null;
+
+                int dishId = resultSet.getInt("dish_id");
+                String dishName = resultSet.getString("dish_name");
+                String dishTypeStr = resultSet.getString("dish_type");
+
+                if (dishId != 0 && dishTypeStr != null) {
+                    dish = new Dish(
+                            dishId,
+                            dishName,
+                            DishEnum.valueOf(dishTypeStr),
+                            null
+                    );
+                }
 
                 Ingredient ingredient = new Ingredient(
                         resultSet.getInt("ingredient_id"),
@@ -114,6 +122,7 @@ public class DataRetriever {
 
                 ingredients.add(ingredient);
             }
+
             return ingredients;
 
         } catch (SQLException e) {
@@ -122,10 +131,11 @@ public class DataRetriever {
             try {
                 if (resultSet != null) resultSet.close();
                 if (statement != null) statement.close();
-                if (statement != null) statement.close();
+                if (connection != null) connection.close();
             } catch (SQLException ignored) {}
         }
     }
+
 
     public List<Ingredient> createIngredients(List<Ingredient> newIngredients) {
 
