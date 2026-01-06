@@ -4,139 +4,128 @@ import school.hei.prog3td2.DAO.DataRetriever;
 import school.hei.prog3td2.model.*;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class Main {
 
     public static void main(String[] args) {
+        DataRetriever dr = new DataRetriever();
 
-        DataRetriever dao = new DataRetriever();
-
-        // a) findDishById(1)
-        System.out.println("a) findDishById(1)");
-        Dish dish1 = dao.findDishById(1);
-        System.out.println(dish1.getName());
-        dish1.getIngredients().forEach(i -> System.out.println(" - " + i.getName()));
-        System.out.println();
-
-        // b) findDishById(999) → exception
-        System.out.println("b) findDishById(999)");
+        System.out.println("==== Test a) findDishById(1) ====");
         try {
-            dao.findDishById(999);
+            Dish dish1 = dr.findDishById(1);
+            System.out.println("Dish: " + dish1.getName());
+            System.out.println("Ingredients:");
+            for (Ingredient ing : dish1.getIngredients()) {
+                System.out.println("- " + ing.getName());
+            }
         } catch (RuntimeException e) {
-            System.out.println("Exception levée ✔");
+            System.out.println("Exception: " + e.getMessage());
         }
-        System.out.println();
 
-        // c) findIngredients(page=2, size=2)
-        System.out.println("c) findIngredients(page=2, size=2)");
-        dao.findIngredients(2, 2)
-                .forEach(i -> System.out.println(i.getName()));
-        System.out.println();
-
-        // d) findIngredients(page=3, size=5)
-        System.out.println("d) findIngredients(page=3, size=5)");
-        List<Ingredient> page3 = dao.findIngredients(3, 5);
-        System.out.println("Liste vide ? " + page3.isEmpty());
-        System.out.println();
-
-        // e) findDishsByIngredientName(\"eur\")
-        System.out.println("e) findDishsByIngredientName(\"eur\")");
-        dao.findDishesByIngredientName("eur")
-                .forEach(d -> System.out.println(d.getName()));
-        System.out.println();
-
-        // f) category=VEGETABLE
-        System.out.println("f) category=VEGETABLE");
-        dao.findIngredientByCriteria(
-                null,
-                CategoryEnum.VEGETABLE,
-                null,
-                1,
-                10
-        ).forEach(i -> System.out.println(i.getName()));
-        System.out.println();
-
-        // g) ingredientName=\"cho\", dishName=\"Sal\"
-        System.out.println("g) ingredientName=\"cho\", dishName=\"Sal\"");
-        List<Ingredient> gResult = dao.findIngredientByCriteria(
-                "cho",
-                null,
-                "Sal",
-                1,
-                10
-        );
-        System.out.println("Liste vide ? " + gResult.isEmpty());
-        System.out.println();
-
-        // h) ingredientName=\"cho\", dishName=\"gâteau\"
-        System.out.println("h) ingredientName=\"cho\", dishName=\"gâteau\"");
-        dao.findIngredientByCriteria(
-                "cho",
-                null,
-                "gâteau",
-                1,
-                10
-        ).forEach(i -> System.out.println(i.getName()));
-        System.out.println();
-
-        // i) createIngredients OK
-        System.out.println("i) createIngredients OK");
-        dao.createIngredients(List.of(
-                new Ingredient(0, "Fromage", 1200.0, CategoryEnum.DAIRY, null),
-                new Ingredient(0, "Oignon", 500.0, CategoryEnum.VEGETABLE, null)
-        )).forEach(i -> System.out.println(i.getName()));
-        System.out.println();
-
-        // j) createIngredients doublon
-        System.out.println("j) createIngredients doublon");
+        System.out.println("\n==== Test b) findDishById(999) ====");
         try {
-            dao.createIngredients(List.of(
-                    new Ingredient(0, "Carotte", 2000.0, CategoryEnum.VEGETABLE, null),
-                    new Ingredient(0, "Laitue", 2000.0, CategoryEnum.VEGETABLE, null)
-            ));
+            Dish dish999 = dr.findDishById(999);
+            System.out.println("Dish: " + dish999.getName());
         } catch (RuntimeException e) {
-            System.out.println("Exception levée ✔");
+            System.out.println("Exception levée ✔ : " + e.getMessage());
         }
-        System.out.println();
 
-        // k) saveDish création
-        System.out.println("k) saveDish création");
-        Dish soupe = new Dish(
-                0,
-                "Soupe de légumes",
-                DishEnum.START,
-                List.of(new Ingredient(7, null, null, null, null)) // ID réel Oignon
-        );
-        dao.saveDish(soupe);
-        System.out.println("Soupe créée ✔");
-        System.out.println();
+        System.out.println("\n==== Test c) findIngredients(page=2, size=2) ====");
+        List<Ingredient> page2Ingredients = dr.findIngredients(2, 2);
+        for (Ingredient ing : page2Ingredients) {
+            System.out.println("- " + ing.getName());
+        }
 
-        // l) saveDish update ajout ingrédients
-        System.out.println("l) saveDish update ajout");
-        Dish saladeUpdate = new Dish(
-                1,
-                "Salade fraîche",
-                DishEnum.START,
-                List.of(
-                        new Ingredient(7, null, null, null, null), // Oignon
-                        new Ingredient(1, null, null, null, null), // Laitue
-                        new Ingredient(2, null, null, null, null), // Tomate
-                        new Ingredient(6, null, null, null, null)  // Fromage
-                )
-        );
-        dao.saveDish(saladeUpdate);
-        System.out.println("Ingrédients ajoutés ✔");
-        System.out.println();
+        System.out.println("\n==== Test d) findIngredients(page=3, size=5) ====");
+        List<Ingredient> page3Ingredients = dr.findIngredients(3, 5);
+        System.out.println(page3Ingredients.isEmpty() ? "Liste vide ✔" : page3Ingredients);
 
-        // m) saveDish suppression ingrédients
-        System.out.println("m) saveDish suppression");
-        Dish saladeFromage = new Dish(
-                1,
-                "Salade de fromage",
-                DishEnum.START,
-                List.of(new Ingredient(6, null, null, null, null)) // Fromage
+        System.out.println("\n==== Test e) findDishsByIngredientName('eur') ====");
+        List<Dish> dishesWithEur = dr.findDishesByIngredientName("eur");
+        for (Dish d : dishesWithEur) {
+            System.out.println("Dish: " + d.getName());
+        }
+
+        System.out.println("\n==== Test f) findIngredientsByCriteria(category=VEGETABLE) ====");
+        List<Ingredient> vegIngredients = dr.findIngredientByCriteria(
+                null, CategoryEnum.VEGETABLE, null, 1, 10
         );
-        dao.saveDish(saladeFromage);
-        System.out.println("Ingrédients supprimés ✔");
+        for (Ingredient ing : vegIngredients) {
+            System.out.println("- " + ing.getName());
+        }
+
+        System.out.println("\n==== Test g) findIngredientsByCriteria(name='cho', dishName='Sal') ====");
+        List<Ingredient> testG = dr.findIngredientByCriteria(
+                "cho", null, "Sal", 1, 10
+        );
+        System.out.println(testG.isEmpty() ? "Liste vide ✔" : testG);
+
+        System.out.println("\n==== Test h) findIngredientsByCriteria(name='cho', dishName='gâteau') ====");
+        List<Ingredient> testH = dr.findIngredientByCriteria(
+                "cho", null, "gâteau", 1, 10
+        );
+        for (Ingredient ing : testH) {
+            System.out.println("- " + ing.getName());
+        }
+
+        System.out.println("\n==== Test i) createIngredients([Fromage, Oignon]) ====");
+        try {
+            List<Ingredient> newIngredients = new ArrayList<>();
+            newIngredients.add(new Ingredient("Fromage", 1200.0, CategoryEnum.DAIRY));
+            newIngredients.add(new Ingredient("Oignon", 500.0, CategoryEnum.VEGETABLE));
+            List<Ingredient> createdIngredients = dr.createIngredients(newIngredients);
+            for (Ingredient ing : createdIngredients) {
+                System.out.println("- " + ing.getName());
+            }
+        } catch (RuntimeException e) {
+            System.out.println("Exception: " + e.getMessage());
+        }
+
+        System.out.println("\n==== Test j) createIngredients doublon [Carotte, Laitue] ====");
+        try {
+            List<Ingredient> dupIngredients = new ArrayList<>();
+            dupIngredients.add(new Ingredient("Carotte", 2000.0, CategoryEnum.VEGETABLE));
+            dupIngredients.add(new Ingredient("Laitue", 2000.0, CategoryEnum.VEGETABLE));
+            dr.createIngredients(dupIngredients);
+        } catch (RuntimeException e) {
+            System.out.println("Exception levée ✔ : " + e.getMessage());
+        }
+
+        System.out.println("\n==== Test k) saveDish(Soupe de légumes) ====");
+        Dish soupe = new Dish();
+        soupe.setName("Soupe de légumes");
+        soupe.setDishType(DishEnum.START);
+        List<Ingredient> soupeIngredients = new ArrayList<>();
+        soupeIngredients.add(new Ingredient("Oignon", 500.0, CategoryEnum.VEGETABLE));
+        soupe.setIngredients(soupeIngredients);
+        Dish savedSoupe = dr.saveDish(soupe);
+        System.out.println("Dish créé: " + savedSoupe.getName());
+        for (Ingredient ing : savedSoupe.getIngredients()) {
+            System.out.println("- " + ing.getName());
+        }
+
+        System.out.println("\n==== Test l) saveDish(update Salade fraîche) ====");
+        Dish salade = dr.findDishById(1);
+        List<Ingredient> saladeIngredients = new ArrayList<>(salade.getIngredients());
+        saladeIngredients.add(new Ingredient("Oignon", 500.0, CategoryEnum.VEGETABLE));
+        saladeIngredients.add(new Ingredient("Fromage", 1200.0, CategoryEnum.DAIRY));
+        salade.setIngredients(saladeIngredients);
+        salade = dr.saveDish(salade);
+        System.out.println("Dish mis à jour: " + salade.getName());
+        for (Ingredient ing : salade.getIngredients()) {
+            System.out.println("- " + ing.getName());
+        }
+
+        System.out.println("\n==== Test m) saveDish(update Salade de fromage) ====");
+        salade.setName("Salade de fromage");
+        List<Ingredient> fromageOnly = new ArrayList<>();
+        fromageOnly.add(new Ingredient("Fromage", 1200.0, CategoryEnum.DAIRY));
+        salade.setIngredients(fromageOnly);
+        salade = dr.saveDish(salade);
+        System.out.println("Dish mis à jour: " + salade.getName());
+        for (Ingredient ing : salade.getIngredients()) {
+            System.out.println("- " + ing.getName());
+        }
     }
 }

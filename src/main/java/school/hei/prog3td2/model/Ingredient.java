@@ -20,6 +20,17 @@ public class Ingredient {
         this.name = name;
         this.price = price;
     }
+    public Ingredient(int id, String name, double price, CategoryEnum categoryEnum) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.categoryEnum = categoryEnum;
+    }
+    public Ingredient( String name, double price, CategoryEnum categoryEnum) {
+        this.name = name;
+        this.price = price;
+        this.categoryEnum = categoryEnum;
+    }
 
     public CategoryEnum getCategoryEnum() {
         return categoryEnum;
