@@ -8,6 +8,8 @@ public class Dish {
     private DishEnum dishType;
     private List<Ingredient> ingredients;
 
+    public Dish() {}
+
     double getDishPrice(){
         return ingredients.stream()
                 .mapToDouble(Ingredient::getPrice)

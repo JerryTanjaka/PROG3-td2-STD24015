@@ -20,7 +20,7 @@ public class DataRetriever {
                    i.id AS ingredient_id, i.name AS ingredient_name,
                    i.price AS ingredient_price, i.category AS ingredient_category
             FROM dish d
-            JOIN ingredient i ON d.id = i.id_dish
+            LEFT JOIN ingredient i ON d.id = i.id_dish
             WHERE d.id = ?
             """;
 
@@ -175,7 +175,7 @@ public class DataRetriever {
 
     public Dish saveDish(Dish dishToSave) {
         String findDishSql = """
-            SELECT id FROM "Dish" WHERE id = ?
+            SELECT id FROM dish WHERE id = ?
             """;
         String insertDishSql = """
             INSERT INTO dish (name, dish_type)
@@ -293,4 +293,123 @@ public class DataRetriever {
             try { if (connection != null) connection.close(); } catch (SQLException ignored) {}
         }
     }
+
+
+    public List<Dish> findDishesByIngredientName(String ingredientName) {
+
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        String sql = """
+            SELECT DISTINCT d.id, d.name, d.dish_type
+            FROM "Dish" d
+            JOIN ingredient i ON d.id = i.id_dish
+            WHERE i.name ILIKE ?
+            """;
+
+        List<Dish> dishes = new ArrayList<>();
+
+        try {
+            con = dbConnection.getDBConnection();
+            stmt = con.prepareStatement(sql);
+            stmt.setString(1, "%" + ingredientName + "%");
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Dish dish = new Dish();
+                dish.setId(rs.getInt("id"));
+                dish.setName(rs.getString("name"));
+                dish.setDishType(
+                        DishEnum.valueOf(rs.getString("dish_type"))
+                );
+
+                dishes.add(dish);
+            }
+            return dishes;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ignored) {
+            }
+        }
+    }
+
+    public List<Ingredient> findIngredientByCriteria(String ingredientName, CategoryEnum category, String dishName, int page, int size) {
+        Connection con = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        StringBuilder sql = new StringBuilder("""
+            SELECT i.id, i.name, i.price, i.category
+            FROM "Ingredient" i
+            LEFT JOIN "Dish" d ON i.id_dish = d.id
+            WHERE 1 = 1
+            """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (ingredientName != null) {
+            sql.append(" AND i.name ILIKE ?");
+            params.add("%" + ingredientName + "%");
+        }
+
+        if (category != null) {
+            sql.append(" AND i.category = ?::ingredient_category_enum");
+            params.add(category.toString());
+        }
+
+        if (dishName != null) {
+            sql.append(" AND d.name ILIKE ?");
+            params.add("%" + dishName + "%");
+        }
+
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(size);
+        params.add(size * (page - 1));
+
+        List<Ingredient> ingredients = new ArrayList<>();
+
+        try {
+            con = dbConnection.getDBConnection();
+            stmt = con.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                ingredients.add(
+                        new Ingredient(
+                                rs.getInt("id"),
+                                rs.getString("name"),
+                                rs.getDouble("price"),
+                                CategoryEnum.valueOf(rs.getString("category")),
+                                null
+                        )
+                );
+            }
+            return ingredients;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ignored) {
+            }
+        }
+    }
+
+
 }
