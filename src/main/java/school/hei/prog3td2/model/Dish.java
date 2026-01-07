@@ -9,7 +9,6 @@ public class Dish {
     private List<Ingredient> ingredients;
     private Double price;
 
-    public Dish() {}
 
     public Double getDishCost() {
         if (ingredients == null) {
@@ -27,6 +26,7 @@ public class Dish {
         this.price = price;
         this.ingredients = ingredients;
     }
+    public Dish() {}
 
     public Double getPrice() {
         return price;
