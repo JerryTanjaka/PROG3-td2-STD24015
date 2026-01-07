@@ -67,7 +67,7 @@ public class DataRetriever {
             try {
                 if (resultSet != null) resultSet.close();
                 if (statement != null) statement.close();
-                if (statement != null) statement.close();
+                if (connection != null) connection.close();
             } catch (SQLException ignored) {}
         }
     }
