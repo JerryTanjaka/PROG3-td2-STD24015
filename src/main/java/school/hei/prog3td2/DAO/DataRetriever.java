@@ -173,9 +173,9 @@ public class DataRetriever {
                 insertPs.setString(1, ing.getName());
                 insertPs.setDouble(2, ing.getPrice());
                 insertPs.setString(3, ing.getCategoryEnum().name());
-                insertPs.executeUpdate();
+                insertPs.addBatch();
             }
-
+            insertPs.executeBatch();
             connection.commit();
             return newIngredients;
 
