@@ -7,6 +7,7 @@ public class Dish {
     private String name;
     private DishEnum dishType;
     private List<Ingredient> ingredients;
+    private Double price;
 
     public Dish() {}
 
@@ -19,12 +20,20 @@ public class Dish {
                 .sum();
     }
 
-
-    public Dish(int id, String name,DishEnum dishType,  List<Ingredient> ingredients) {
-        this.dishType = dishType;
+    public Dish(int id, String name, DishEnum dishType, Double price, List<Ingredient> ingredients) {
         this.id = id;
-        this.ingredients = ingredients;
         this.name = name;
+        this.dishType = dishType;
+        this.price = price;
+        this.ingredients = ingredients;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public DishEnum getDishType() {
@@ -59,6 +68,16 @@ public class Dish {
         this.name = name;
     }
 
+    public Double getGrossMargin() {
+        if (price == null) {
+            throw new RuntimeException(
+                    "Impossible de calculer la marge : le prix de vente n'est pas défini"
+            );
+        }
+        return price - getDishCost();
+    }
+
+
     @Override
     public String toString() {
         return "Dish{" +
@@ -68,4 +87,5 @@ public class Dish {
                 ", ingredients=" + ingredients +
                 '}';
     }
+
 }
