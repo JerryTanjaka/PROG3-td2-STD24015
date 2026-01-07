@@ -79,7 +79,7 @@ public class DataRetriever {
         String sql = """
         SELECT i.id AS ingredient_id, i.name AS ingredient_name,
                i.price AS ingredient_price, i.category AS ingredient_category,
-               d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
+               d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type , d.price AS dish_price
         FROM ingredient i
         LEFT JOIN dish d ON i.id_dish = d.id
         LIMIT ? OFFSET ?
@@ -110,6 +110,7 @@ public class DataRetriever {
                             dishId,
                             dishName,
                             DishEnum.valueOf(dishTypeStr),
+                            resultSet.getDouble("dish_price"),
                             null
                     );
                 }
@@ -282,7 +283,7 @@ public class DataRetriever {
     public List<Dish> findDishByIngredientName(String ingredientName) {
 
         String sql = """
-            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type
+            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type, d.price as dish_price
             FROM dish d
             JOIN ingredient i ON d.id = i.id_dish
             WHERE i.name = ?
@@ -305,6 +306,7 @@ public class DataRetriever {
                         rs.getInt("dish_id"),
                         rs.getString("dish_name"),
                         DishEnum.valueOf(rs.getString("dish_type")),
+                        rs.getDouble("dish_price"),
                         null
                 ));
             }
