@@ -6,24 +6,23 @@ import school.hei.prog3td2.model.DishEnum;
 import school.hei.prog3td2.model.Ingredient;
 import school.hei.prog3td2.util.DBConnection;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 
 public class DataRetriever {
 
     DBConnection dbConnection = new DBConnection();
-
     public Dish findDishById(Integer id) {
-
         String sql = """
-            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,d.price AS dish_price,
-                   i.id AS ingredient_id, i.name AS ingredient_name,
-                   i.price AS ingredient_price, i.category AS ingredient_category
-
-            FROM dish d
-            LEFT JOIN ingredient i ON d.id = i.id_dish
-            WHERE d.id = ?
-            """;
+        SELECT d.id AS dish_id,d.name AS dish_name,d.dish_type AS dish_type,d.price AS dish_price,
+               i.id AS ingredient_id,i.name AS ingredient_name,
+               i.price AS ingredient_price,
+               i.category AS ingredient_category
+        FROM dish d
+        LEFT JOIN ingredient i ON d.id = i.id_dish
+        WHERE d.id = ?
+        """;
 
         Connection connection = null;
         PreparedStatement statement = null;
@@ -39,11 +38,9 @@ public class DataRetriever {
 
             while (resultSet.next()) {
                 if (dish == null) {
-//                    Double price = resultSet.getObject("dish_price") == null ? null : resultSet.getDouble("dish_price");
-                    Double price = resultSet.getDouble("dish_price");
-                    if (resultSet.wasNull()) {
-                        price = null;
-                    }
+                    BigDecimal priceBD = resultSet.getBigDecimal("dish_price");
+                    Double price = priceBD != null ? priceBD.doubleValue() : null;
+
                     dish = new Dish(
                             resultSet.getInt("dish_id"),
                             resultSet.getString("dish_name"),
@@ -73,6 +70,7 @@ public class DataRetriever {
             if (dish == null) {
                 throw new RuntimeException("Dish not found with id " + id);
             }
+
             return dish;
 
         } catch (SQLException e) {
@@ -85,6 +83,7 @@ public class DataRetriever {
             } catch (SQLException ignored) {}
         }
     }
+
 
     public List<Ingredient> findIngredients(int page, int size) {
 
