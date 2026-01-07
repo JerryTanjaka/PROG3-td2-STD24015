@@ -134,7 +134,7 @@ public class Main {
         System.out.println("Marge salade = " + salade.getGrossMargin());
 
         Dish gateau = dr.findDishById(4);
-        System.out.println(gateau.getGrossMargin());
+       System.out.println(gateau.getGrossMargin());
 
         Dish riz = dr.findDishById(3);
         riz.setPrice(4000.0);

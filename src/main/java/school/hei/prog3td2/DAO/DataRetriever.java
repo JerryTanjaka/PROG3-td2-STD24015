@@ -19,7 +19,7 @@ public class DataRetriever {
             SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,d.price AS dish_price,
                    i.id AS ingredient_id, i.name AS ingredient_name,
                    i.price AS ingredient_price, i.category AS ingredient_category
-                   
+
             FROM dish d
             LEFT JOIN ingredient i ON d.id = i.id_dish
             WHERE d.id = ?
@@ -39,10 +39,7 @@ public class DataRetriever {
 
             while (resultSet.next()) {
                 if (dish == null) {
-                    Double price = resultSet.getDouble("dish_price");
-                    if (resultSet.wasNull()) {
-                        price = null;
-                    }
+                    Double price = resultSet.getObject("dish_price")==null?null : resultSet.getDouble("dish_price"); ;
 
                     dish = new Dish(
                             resultSet.getInt("dish_id"),
@@ -69,7 +66,6 @@ public class DataRetriever {
                     dish.getIngredients().add(ingredient);
                 }
             }
-
 
             if (dish == null) {
                 throw new RuntimeException("Dish not found with id " + id);
