@@ -48,16 +48,23 @@ public class DataRetriever {
                     );
                 }
 
-                Ingredient ingredient = new Ingredient(
-                        resultSet.getInt("ingredient_id"),
-                        resultSet.getString("ingredient_name"),
-                        resultSet.getDouble("ingredient_price"),
-                        CategoryEnum.valueOf(resultSet.getString("ingredient_category")),
-                        dish
-                );
+                Integer ingId = resultSet.getInt("ingredient_id");
+                String ingName = resultSet.getString("ingredient_name");
+                Double ingPrice = resultSet.getDouble("ingredient_price");
+                String categoryStr = resultSet.getString("ingredient_category");
 
-                dish.getIngredients().add(ingredient);
+                if (ingName != null && categoryStr != null) {
+                    Ingredient ingredient = new Ingredient(
+                            ingId,
+                            ingName,
+                            ingPrice,
+                            CategoryEnum.valueOf(categoryStr),
+                            dish
+                    );
+                    dish.getIngredients().add(ingredient);
+                }
             }
+
             if (dish == null) {
                 throw new RuntimeException("Dish not found with id " + id);
             }
