@@ -369,6 +369,7 @@ public class DataRetriever {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
+
         StringBuilder sql = new StringBuilder("""
             SELECT i.id, i.name, i.price, i.category
             FROM ingredient i

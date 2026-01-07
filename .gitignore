@@ -40,3 +40,5 @@ build/
 
 ###ignore the dotenv
 .env
+
+./src/main/resources/restartData.sql

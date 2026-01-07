@@ -10,11 +10,15 @@ public class Dish {
 
     public Dish() {}
 
-    double getDishPrice(){
+    public Double getDishCost() {
+        if (ingredients == null) {
+            return 0.0;
+        }
         return ingredients.stream()
                 .mapToDouble(Ingredient::getPrice)
                 .sum();
     }
+
 
     public Dish(int id, String name,DishEnum dishType,  List<Ingredient> ingredients) {
         this.dishType = dishType;
