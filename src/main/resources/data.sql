@@ -20,8 +20,7 @@ SELECT setval(pg_get_serial_sequence('Ingredient','id'),
               (SELECT max(id) FROM Ingredient));
 
 
-ALTER TABLE dish
-    ADD COLUMN IF NOT EXISTS price NUMERIC(10,2);
+
 UPDATE dish SET price = 2000 WHERE name = 'Salade fraîche';
 UPDATE dish SET price = 6000 WHERE name = 'Poulet grillé';
 

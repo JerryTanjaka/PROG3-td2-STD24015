@@ -16,9 +16,10 @@ public class DataRetriever {
     public Dish findDishById(Integer id) {
 
         String sql = """
-            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,
+            SELECT d.id AS dish_id, d.name AS dish_name, d.dish_type AS dish_type,d.price AS dish_price,
                    i.id AS ingredient_id, i.name AS ingredient_name,
                    i.price AS ingredient_price, i.category AS ingredient_category
+                   
             FROM dish d
             LEFT JOIN ingredient i ON d.id = i.id_dish
             WHERE d.id = ?
@@ -42,6 +43,7 @@ public class DataRetriever {
                             resultSet.getInt("dish_id"),
                             resultSet.getString("dish_name"),
                             DishEnum.valueOf(resultSet.getString("dish_type")),
+                            resultSet.getDouble("dish_price"),
                             new ArrayList<>()
                     );
                 }
@@ -203,7 +205,8 @@ public class DataRetriever {
             """;
 
         String updateDishSql = """
-            UPDATE dish SET name = ?, dish_type = ?::dish_type WHERE id = ?
+            UPDATE dish SET name = ?, dish_type = ?::dish_type , price = ? 
+            WHERE id = ?
             """;
 
         String clearIngredientsSql = """
@@ -240,7 +243,8 @@ public class DataRetriever {
                 ps = connection.prepareStatement(updateDishSql);
                 ps.setString(1, dishToSave.getName());
                 ps.setString(2, dishToSave.getDishType().name());
-                ps.setInt(3, dishToSave.getId());
+                ps.setObject(3, dishToSave.getPrice());
+                ps.setInt(4, dishToSave.getId());
                 ps.executeUpdate();
                 ps.close();
             }

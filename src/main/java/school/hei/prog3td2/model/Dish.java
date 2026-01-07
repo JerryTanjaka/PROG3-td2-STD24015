@@ -77,7 +77,6 @@ public class Dish {
         return price - getDishCost();
     }
 
-
     @Override
     public String toString() {
         return "Dish{" +
