@@ -39,11 +39,16 @@ public class DataRetriever {
 
             while (resultSet.next()) {
                 if (dish == null) {
+                    Double price = resultSet.getDouble("dish_price");
+                    if (resultSet.wasNull()) {
+                        price = null;
+                    }
+
                     dish = new Dish(
                             resultSet.getInt("dish_id"),
                             resultSet.getString("dish_name"),
                             DishEnum.valueOf(resultSet.getString("dish_type")),
-                            resultSet.getDouble("dish_price"),
+                            price,
                             new ArrayList<>()
                     );
                 }
@@ -64,6 +69,7 @@ public class DataRetriever {
                     dish.getIngredients().add(ingredient);
                 }
             }
+
 
             if (dish == null) {
                 throw new RuntimeException("Dish not found with id " + id);
