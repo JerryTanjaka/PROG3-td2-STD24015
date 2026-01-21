@@ -5,17 +5,33 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 public class DBConnection {
 
-    private static final Dotenv dotenv = Dotenv.load();
+    public Connection getConnection() {
+        try {
+            Dotenv dotenv = Dotenv.load();
+            String jdbcURl = dotenv.get("DB_URL");
+            String user = dotenv.get("DB_USERNAME");
+            String password = dotenv.get("DB_PASSWORD");
+            return DriverManager.getConnection(jdbcURl, user, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    private static final String URL = dotenv.get("JDBC_URL");
-    private static final String USER = dotenv.get("USERNAME");
-    private static final String PASSWORD = dotenv.get("PASSWORD");
-
-    public Connection getDBConnection() throws SQLException {
-        Connection connection =
-                DriverManager.getConnection(URL, USER, PASSWORD);
-        return connection;
+    public void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

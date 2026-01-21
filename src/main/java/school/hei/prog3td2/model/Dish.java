@@ -2,12 +2,22 @@ package school.hei.prog3td2.model;
 import java.util.List;
 import java.util.Objects;
 
+
 public class Dish {
     private Integer id;
     private Double price;
     private String name;
     private DishTypeEnum dishType;
     private List<Ingredient> ingredients;
+    private List<DishIngredient> dishIngredientList;
+
+    public List<DishIngredient> getDishIngredientList() {
+        return dishIngredientList;
+    }
+
+    public void setDishIngredientList(List<DishIngredient> dishIngredientList) {
+        this.dishIngredientList = dishIngredientList;
+    }
 
     public Double getPrice() {
         return price;
@@ -19,12 +29,16 @@ public class Dish {
 
     public Double getDishCost() {
         double totalPrice = 0;
-        for (int i = 0; i < ingredients.size(); i++) {
-            Double quantity = ingredients.get(i).getQuantity();
-            if(quantity == null) {
-                throw new RuntimeException("...");
+        List<Ingredient> ingredients = getIngredients();
+        for (Ingredient ingredient : ingredients) {
+            DishIngredient relation = getDishIngredientList().stream()
+                    .filter(dl -> dl.getId_ingredient() == ingredient.getId())
+                    .findFirst().orElse(null);
+            if (relation == null) {
+                throw new RuntimeException("Ingredient not found");
             }
-            totalPrice = totalPrice + ingredients.get(i).getPrice() * quantity;
+            double cost = ingredient.getPrice() * relation.getQuantity_required();
+            totalPrice += cost;
         }
         return totalPrice;
     }
@@ -32,11 +46,19 @@ public class Dish {
     public Dish() {
     }
 
-    public Dish(Integer id, String name, DishTypeEnum dishType, List<Ingredient> ingredients) {
+    public Dish(Integer id, String name, DishTypeEnum dishType, List<Ingredient> ingredients,Double price) {
         this.id = id;
         this.name = name;
         this.dishType = dishType;
         this.ingredients = ingredients;
+        this.price = price;
+    }
+    public Dish(Integer id, String name, DishTypeEnum dishType, List<Ingredient> ingredients, List<DishIngredient> dishIngredientList) {
+        this.id = id;
+        this.name = name;
+        this.dishType = dishType;
+        this.ingredients = ingredients;
+        this.dishIngredientList = dishIngredientList;
     }
 
 
@@ -72,9 +94,6 @@ public class Dish {
         if (ingredients == null) {
             this.ingredients = null;
             return;
-        }
-        for (int i = 0; i < ingredients.size(); i++) {
-            ingredients.get(i).setDish(this);
         }
         this.ingredients = ingredients;
     }
