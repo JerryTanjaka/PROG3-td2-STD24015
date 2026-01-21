@@ -21,7 +21,7 @@ constraint fk_ingredient
 );
 
 -- rename price to selling price
-ALTER TABLE Dish RENAME COLUMN price TO selling_price;
+-- ALTER TABLE Dish RENAME COLUMN price TO selling_price;
 
 -- add selling_price if it doesnt
 ALTER TABLE Dish ADD COLUMN IF NOT EXISTS selling_price NUMERIC;

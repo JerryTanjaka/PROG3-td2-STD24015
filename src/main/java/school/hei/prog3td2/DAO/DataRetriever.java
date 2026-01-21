@@ -46,7 +46,7 @@ public class DataRetriever {
     }
 
     public Dish saveDish(Dish toSave) {
-        String upsertDishSql = """
+        String updateinsertDishSql = """
                     INSERT INTO dish (id, selling_price, name, dish_type)
                     VALUES (?, ?, ?, ?::dish_type)
                     ON CONFLICT (id) DO UPDATE
@@ -59,7 +59,7 @@ public class DataRetriever {
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
             Integer dishId;
-            try (PreparedStatement ps = conn.prepareStatement(upsertDishSql)) {
+            try (PreparedStatement ps = conn.prepareStatement(updateinsertDishSql)) {
                 if (toSave.getId() != null) {
                     ps.setInt(1, toSave.getId());
                 } else {
@@ -77,10 +77,11 @@ public class DataRetriever {
                     dishId = rs.getInt(1);
                 }
             }
-
             List<Ingredient> newIngredients = toSave.getIngredients();
-
+            //detach ingredients
             detachIngredients(conn, dishId, newIngredients);
+
+            //attach ingredients
             attachIngredients(conn, dishId, toSave.getDishIngredientList());
 
             conn.commit();
@@ -138,34 +139,38 @@ public class DataRetriever {
 
     private void detachIngredients(Connection conn, Integer dishId, List<Ingredient> ingredients)
             throws SQLException {
+
+        // Si aucun ingrédient → on supprime tous les liens
         if (ingredients == null || ingredients.isEmpty()) {
             try (PreparedStatement ps = conn.prepareStatement(
-                    "delete from dishingredient where id_dish = ?")) {
+                    "DELETE FROM dish_ingredient WHERE id_dish = ?")) {
                 ps.setInt(1, dishId);
                 ps.executeUpdate();
             }
             return;
         }
-        String baseSql = """
-                delete from dishingredient where id_dish = ?
-                and id_ingredient not in (%s)
-                """;
-        String inClause = ingredients.stream().map(i -> "?").collect(Collectors.joining(","));
-        String finalSql = String.format(baseSql, inClause);
 
-        try(PreparedStatement ps = conn.prepareStatement(finalSql)) {
+        // Supprimer les ingrédients qui ne sont plus liés au plat
+        String placeholders = ingredients.stream()
+                .map(i -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = """
+        DELETE FROM dish_ingredient
+        WHERE id_dish = ?
+        AND id_ingredient NOT IN (%s)
+        """.formatted(placeholders);
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, dishId);
-            int idx = 2;
+            int index = 2;
             for (Ingredient ingredient : ingredients) {
-                ps.setInt(idx, ingredient.getId());
-                idx++;
+                ps.setInt(index++, ingredient.getId());
             }
             ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
-
     }
+
 
     private void attachIngredients(Connection conn, Integer dishId, List<DishIngredient> dishIngredients)
             throws SQLException {
@@ -174,26 +179,27 @@ public class DataRetriever {
             return;
         }
 
-        String attachSql = """
-                   insert into dishingredient (id_dish, id_ingredient, quantity_required, unit)
-                   values (?,?,?,?::unit_type)
-                   on conflict do update
-                   set quantity_required= EXCLUDED.quantity_required,
-                       unit= EXCLUDED.unit;
-                """;
+        String sql = """
+        INSERT INTO dish_ingredient (id_dish, id_ingredient, quantity_required, unit)
+        VALUES (?, ?, ?, ?::unit_type)
+        ON CONFLICT (id_dish, id_ingredient)
+        DO UPDATE SET
+            quantity_required = EXCLUDED.quantity_required,
+            unit = EXCLUDED.unit
+        """;
 
-        try (PreparedStatement ps = conn.prepareStatement(attachSql)) {
-            for(DishIngredient dishIngredient : dishIngredients) {
-                ps.setInt(1, dishIngredient.getId());
-                ps.setInt(2, dishIngredient.getId());
-                ps.setDouble(3, dishIngredient.getQuantity_required());
-                ps.setString(4, dishIngredient.getUnit().name());
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (DishIngredient di : dishIngredients) {
+                ps.setInt(1, dishId);
+                ps.setInt(2, di.getId_ingredient());
+                ps.setDouble(3, di.getQuantity_required());
+                ps.setString(4, di.getUnit().name());
                 ps.addBatch();
             }
             ps.executeBatch();
         }
     }
+
 
     private List<Ingredient> findIngredientByDishId(Integer idDish) {
         DBConnection dbConnection = new DBConnection();
