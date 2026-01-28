@@ -1,14 +1,13 @@
 package school.hei.prog3td2.model;
 
-
 import java.util.Objects;
 
 public class DishOrder {
-    private int id;
+    private Integer id;
     private Dish dish;
     private int quantity;
 
-    public DishOrder(int id, Dish dish, int quantity) {
+    public DishOrder(Integer id, Dish dish, int quantity) {
         this.id = id;
         this.dish = dish;
         this.quantity = quantity;
@@ -17,11 +16,11 @@ public class DishOrder {
     public DishOrder() {
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

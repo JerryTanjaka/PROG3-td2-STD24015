@@ -5,23 +5,25 @@ import java.util.List;
 import java.util.Objects;
 
 public class Order {
-    private int id;
+    private Integer id;
     private String reference;
     private Instant creationDatetime;
     private List<DishOrder> dishOrders;
 
-    public Order(int id, String reference, Instant creationDatetime, List<DishOrder> dishOrders) {
+    public Order(Integer id, String reference, Instant creationDatetime, List<DishOrder> dishOrders) {
         this.id = id;
         this.reference = reference;
         this.creationDatetime = creationDatetime;
         this.dishOrders = dishOrders;
     }
+    public Order() {
+    }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
