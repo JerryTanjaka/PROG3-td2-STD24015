@@ -6,6 +6,11 @@ public class DishOrder {
     private Dish dish;
     private Integer quantity;
 
+    public DishOrder(Integer id, Dish dish, int quantity) {
+        this.id = id;
+        this.dish = dish;
+        this.quantity = quantity;
+    }
     public Integer getId() {
         return id;
     }

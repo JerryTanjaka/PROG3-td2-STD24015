@@ -8,6 +8,13 @@ public class StockMovement {
     private Instant creationDatetime;
     private StockValue value;
 
+    public StockMovement(Integer id, MovementTypeEnum type, Instant creationDatetime, StockValue value) {
+        this.id = id;
+        this.type = type;
+        this.creationDatetime = creationDatetime;
+        this.value = value;
+    }
+
     public StockMovement() {
     }
 

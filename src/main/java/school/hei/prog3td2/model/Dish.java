@@ -13,6 +13,14 @@ public class Dish {
     public Dish() {
     }
 
+    public Dish(List<DishIngredient> dishIngredients, DishTypeEnum dishType, Integer id, String name, Double price) {
+        this.dishIngredients = dishIngredients;
+        this.dishType = dishType;
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+
     public List<DishIngredient> getDishIngredients() {
         return dishIngredients;
     }

@@ -6,6 +6,13 @@ public class DishIngredient {
     private Double quantity;
     private Unit unit;
 
+    public DishIngredient(Dish dish, Ingredient ingredient, Double quantity, Unit unit) {
+        this.dish = dish;
+        this.ingredient = ingredient;
+        this.quantity = quantity;
+        this.unit = unit;
+    }
+
     public Ingredient getIngredient() {
         return ingredient;
     }

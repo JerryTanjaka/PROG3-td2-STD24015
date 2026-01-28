@@ -9,6 +9,13 @@ public class Order {
     private Instant creationDatetime;
     private List<DishOrder> dishOrderList;
 
+    public Order(Instant creationDatetime, List<DishOrder> dishOrderList, Integer id, String reference) {
+        this.creationDatetime = creationDatetime;
+        this.dishOrderList = dishOrderList;
+        this.id = id;
+        this.reference = reference;
+    }
+
     public Integer getId() {
         return id;
     }

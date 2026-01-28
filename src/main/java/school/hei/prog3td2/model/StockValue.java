@@ -4,6 +4,11 @@ public class StockValue {
     private Double quantity;
     private Unit unit;
 
+    public StockValue(Double quantity, Unit unit) {
+        this.quantity = quantity;
+        this.unit = unit;
+    }
+
     public Double getQuantity() {
         return quantity;
     }
