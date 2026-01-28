@@ -13,20 +13,6 @@ public class Ingredient {
 
     private List<StockMovement> stockMovementList = new ArrayList<>();
 
-    public StockValue getStockValueAt(Instant t) {
-        double totalQuantity = 0.0;
-        for (StockMovement movement : stockMovementList) {
-            if (movement.getCreationDatetime().isBefore(t) || movement.getCreationDatetime().equals(t)) {
-                if (movement.getType() == MovementTypeEnum.IN) {
-                    totalQuantity += movement.getValue().getQuantity();
-                } else if (movement.getType() == MovementTypeEnum.OUT) {
-                    totalQuantity -= movement.getValue().getQuantity();
-                }
-            }
-        }
-
-        return new StockValue(totalQuantity, UnitType.KG);
-    }
 
     public Ingredient() {}
     public Ingredient(Integer id, String name, Double price, CategoryEnum category) {
@@ -35,7 +21,16 @@ public class Ingredient {
         this.price = price;
         this.category = category;
     }
-
+    public StockValue getStockValueAt(Instant t) {
+        double total = 0.0;
+        for (StockMovement m : stockMovementList) {
+            if (!m.getCreationDatetime().isAfter(t)) {
+                if (m.getType() == MovementTypeEnum.IN) total += m.getValue().getQuantity();
+                else total -= m.getValue().getQuantity();
+            }
+        }
+        return new StockValue(total, UnitType.KG);
+    }
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getName() { return name; }

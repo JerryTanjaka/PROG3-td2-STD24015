@@ -26,13 +26,6 @@ public class Dish {
         this.price = price;
     }
 
-    public Double getDishCost() {
-        double totalPrice = 0;
-        for (DishIngredient dishIngredient : dishIngredientList) {
-            totalPrice += dishIngredient.getIngredientCost();
-        }
-        return totalPrice;
-    }
 
     public Dish() {
     }
@@ -98,10 +91,15 @@ public class Dish {
                 '}';
     }
 
+    public Double getDishCost() {
+        if (dishIngredientList == null) return 0.0;
+        return dishIngredientList.stream()
+                .mapToDouble(DishIngredient::getIngredientCost)
+                .sum();
+    }
+
     public Double getGrossMargin() {
-        if (price == null) {
-            throw new RuntimeException("Price is null");
-        }
+        if (price == null) throw new RuntimeException("Exception (prix NULL)");
         return price - getDishCost();
     }
 }
