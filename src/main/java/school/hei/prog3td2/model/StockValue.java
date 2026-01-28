@@ -1,27 +1,16 @@
 package school.hei.prog3td2.model;
 
-public class StockValue {
-    private double quantity;
-    private UnitType unit;
 
-    public StockValue(double quantity, UnitType unit) {
-        this.quantity = quantity;
-        this.unit = unit;
-    }
+    public class StockValue {
+        private double quantity;
+        private UnitType unit;
 
-    public double getQuantity() {
-        return quantity;
-    }
+        public StockValue(double quantity, UnitType unit) {
+            this.quantity = quantity;
+            this.unit = unit;
+        }
 
-    public void setQuantity(double quantity) {
-        this.quantity = quantity;
+        public double getQuantity() {
+            return quantity;
+        }
     }
-
-    public UnitType getUnit() {
-        return unit;
-    }
-
-    public void setUnit(UnitType unit) {
-        this.unit = unit;
-    }
-}
