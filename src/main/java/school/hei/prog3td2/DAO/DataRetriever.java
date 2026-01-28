@@ -68,7 +68,7 @@ public class DataRetriever {
         }
     }
 
-    Dish findDishById(Integer id) {
+    public Dish findDishById(Integer id) {
         DBConnection dbConnection = new DBConnection();
         Connection connection = dbConnection.getConnection();
         try {
@@ -169,7 +169,7 @@ public class DataRetriever {
     }
 
 
-    Ingredient findIngredientById(Integer id) {
+    public Ingredient findIngredientById(Integer id) {
         DBConnection dbConnection = new DBConnection();
         try (Connection connection = dbConnection.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement("select id, name, price, category from ingredient where id = ?;");
@@ -223,7 +223,7 @@ public class DataRetriever {
     }
 
 
-    Dish saveDish(Dish toSave) {
+    public Dish saveDish(Dish toSave) {
         String upsertDishSql = """
                     INSERT INTO dish (id, selling_price, name, dish_type)
                     VALUES (?, ?, ?, ?::dish_type)
