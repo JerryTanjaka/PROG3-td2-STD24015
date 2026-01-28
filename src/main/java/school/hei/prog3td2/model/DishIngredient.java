@@ -1,26 +1,32 @@
 package school.hei.prog3td2.model;
 
+import javax.swing.*;
+import java.util.List;
 import java.util.Objects;
 
 public class DishIngredient {
     private int id;
-    private int id_dish;
-    private int id_ingredient;
+    private Dish dish;
     private double quantity_required;
     private UnitType unit;
+    private Ingredient ingredient;
 
-    public DishIngredient(int id, int idDish, int idIngredient, double quantityRequired, UnitType unit) {
-        this.id = id;
-        id_dish = idDish;
-        id_ingredient = idIngredient;
-        quantity_required = quantityRequired;
+
+    public DishIngredient(int id,Dish dish, double quantity_required, UnitType unit,Ingredient ingredient
+    ) {
+        this.id= id;
+        this.dish = dish;
+        this.quantity_required = quantity_required;
         this.unit = unit;
+        this.ingredient = ingredient;
     }
-    public DishIngredient( int idDish, int idIngredient, double quantityRequired, UnitType unit) {
-        id_dish = idDish;
-        id_ingredient = idIngredient;
-        quantity_required = quantityRequired;
-        this.unit = unit;
+
+    public Ingredient getIngredient() {
+        return ingredient;
+    }
+
+    public void setIngredient(Ingredient ingredient) {
+        this.ingredient = ingredient;
     }
 
     public int getId() {
@@ -31,21 +37,14 @@ public class DishIngredient {
         this.id = id;
     }
 
-    public int getId_dish() {
-        return id_dish;
+    public Dish getDish() {
+        return dish;
     }
 
-    public void setId_dish(int id_dish) {
-        this.id_dish = id_dish;
+    public void setDish(Dish dish) {
+        this.dish = dish;
     }
 
-    public int getId_ingredient() {
-        return id_ingredient;
-    }
-
-    public void setId_ingredient(int id_ingredient) {
-        this.id_ingredient = id_ingredient;
-    }
 
     public double getQuantity_required() {
         return quantity_required;
@@ -62,13 +61,13 @@ public class DishIngredient {
     public void setUnit(UnitType unit) {
         this.unit = unit;
     }
-
+    public double getIngredientCost(){
+        if(ingredient.getPrice() == null) throw new RuntimeException("ingredient price is null");
+        return ingredient.getPrice() * getQuantity_required();
+    }
     @Override
     public String toString() {
         return "DishIngredient{" +
-                "id=" + id +
-                ", id_dish=" + id_dish +
-                ", id_ingredient=" + id_ingredient +
                 ", quantity_required=" + quantity_required +
                 ", unit=" + unit +
                 '}';
@@ -78,11 +77,11 @@ public class DishIngredient {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         DishIngredient that = (DishIngredient) o;
-        return id == that.id && id_dish == that.id_dish && id_ingredient == that.id_ingredient && quantity_required == that.quantity_required && unit == that.unit;
+        return Double.compare(quantity_required, that.quantity_required) == 0 && Objects.equals(dish, that.dish) && unit == that.unit;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, id_dish, id_ingredient, quantity_required, unit);
+        return Objects.hash(dish, quantity_required, unit);
     }
 }

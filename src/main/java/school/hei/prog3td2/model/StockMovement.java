@@ -8,11 +8,11 @@ public class StockMovement {
     private MovementTypeEnum type;
     private Instant creationDatetime;
 
-    public StockMovement(Instant creationDatetime, Integer id, MovementTypeEnum type, StockValue value) {
-        this.creationDatetime = creationDatetime;
+    public StockMovement(Integer id, StockValue value,MovementTypeEnum type, Instant creationDatetime) {
         this.id = id;
         this.type = type;
         this.value = value;
+        this.creationDatetime = creationDatetime;
     }
 
     public Instant getCreationDatetime() {
