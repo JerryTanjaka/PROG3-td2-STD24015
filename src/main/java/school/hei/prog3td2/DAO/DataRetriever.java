@@ -9,7 +9,7 @@ import java.util.*;
 
 public class DataRetriever {
 
-    // 1. GESTION DES COMMANDES (ANNEXE 2)
+
     public Order saveOrder(Order orderToSave) {
         Connection conn = new DBConnection().getConnection();
         try {
