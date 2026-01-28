@@ -7,7 +7,6 @@ public class UnitConverter {
     private final Map<String, Map<UnitType, Map<UnitType, Double>>> rules = new HashMap<>();
 
     public UnitConverter() {
-        // Initialisation des règles selon le tableau PDF (Bonus K1)
         addRule("Tomate", UnitType.KG, UnitType.PCS, 10.0);
         addRule("Laitue", UnitType.KG, UnitType.PCS, 2.0);
         addRule("Chocolat", UnitType.KG, UnitType.PCS, 10.0);
@@ -22,7 +21,6 @@ public class UnitConverter {
                 .computeIfAbsent(from, k -> new HashMap<>())
                 .put(to, ratio);
 
-        // Inverse automatique : si 1 KG = 10 PCS, alors 1 PCS = 0.1 KG
         rules.get(ingredient)
                 .computeIfAbsent(to, k -> new HashMap<>())
                 .put(from, 1 / ratio);

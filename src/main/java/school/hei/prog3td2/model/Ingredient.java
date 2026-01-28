@@ -16,29 +16,26 @@ public class Ingredient {
         this.id = id; this.name = name; this.price = price; this.category = category;
     }
 
-    // Version avec conversion intégrée pour le calcul historique
+    // LOGIQUE CRUCIALE : On passe le convertisseur pour normaliser l'historique
     public StockValue getStockValueAt(Instant t, UnitConverter converter) {
         double totalKg = 0.0;
         for (StockMovement m : stockMovementList) {
             if (!m.getCreationDatetime().isAfter(t)) {
-                // On normalise en KG chaque mouvement (L, PCS ou KG)
-                double qtyInKg = converter.convert(this.name, m.getValue().getQuantity(), m.getValue().getUnit(), UnitType.KG);
-                if (m.getType() == MovementTypeEnum.IN) totalKg += qtyInKg;
-                else totalKg -= qtyInKg;
+                // Conversion unifiée en KG pour chaque mouvement
+                double qtyKg = converter.convert(this.name, m.getValue().getQuantity(), m.getValue().getUnit(), UnitType.KG);
+                if (m.getType() == MovementTypeEnum.IN) totalKg += qtyKg;
+                else totalKg -= qtyKg;
             }
         }
         return new StockValue(totalKg, UnitType.KG);
     }
 
-    // Getters / Setters
+    // Getters/Setters
+    public String getName() { return name; }
+    public void setStockMovementList(List<StockMovement> list) { this.stockMovementList = list; }
+    public List<StockMovement> getStockMovementList() { return stockMovementList; }
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
     public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
-    public List<StockMovement> getStockMovementList() { return stockMovementList; }
-    public void setStockMovementList(List<StockMovement> list) { this.stockMovementList = list; }
     public CategoryEnum getCategory() { return category; }
-    public void setCategory(CategoryEnum category) { this.category = category; }
 }
