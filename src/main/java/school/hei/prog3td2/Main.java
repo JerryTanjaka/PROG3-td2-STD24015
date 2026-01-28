@@ -2,6 +2,7 @@ package school.hei.prog3td2;
 
 import school.hei.prog3td2.DAO.DataRetriever;
 import school.hei.prog3td2.model.*;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,74 +10,87 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        // 1. Initialisation des outils
+        // 1. Initialisation
         DataRetriever dr = new DataRetriever();
-        UnitConverter converter = new UnitConverter(); // Instance (pas de static)
+        UnitConverter converter = new UnitConverter();
 
-        System.out.println("========== TEST DES CONVERSIONS (BONUS PDF) ==========");
-
-        // 2. Récupération des ingrédients depuis la DB (Laitue=1, Tomate=2, Poulet=3, Chocolat=4, Beurre=5)
-        // On suppose que le stock initial en DB (IN) est celui du PDF (5.0, 4.0, 10.0, 3.0, 2.5)
+        System.out.println("======================================================");
+        System.out.println("   TEST DU SCÉNARIO BONUS : CONVERSION DES UNITÉS    ");
+        System.out.println("======================================================");
 
         try {
-            // Test spécifique pour les ingrédients du PDF
-            checkIngredientStock(dr, converter, 1, "Laitue", 2.0, UnitType.PCS);   // 2 PCS = 1.0 KG
-            checkIngredientStock(dr, converter, 2, "Tomate", 5.0, UnitType.PCS);   // 5 PCS = 0.5 KG
-            checkIngredientStock(dr, converter, 3, "Poulet", 4.0, UnitType.PCS);   // 4 PCS = 0.5 KG
-            checkIngredientStock(dr, converter, 4, "Chocolat", 1.0, UnitType.L);   // 1 L = 0.4 KG
-            checkIngredientStock(dr, converter, 5, "Beurre", 1.0, UnitType.L);     // 1 L = 0.2 KG
+            // Liste des tests basés sur le tableau du PDF (Page 2)
+            // Format : ID_DB, Nom, Quantité_Sortie, Unité_Sortie, Stock_Attendu
+            runTest(dr, converter, 1, "Laitue", 2.0, UnitType.PCS, 4.0);
+            runTest(dr, converter, 2, "Tomate", 5.0, UnitType.PCS, 3.5);
+            runTest(dr, converter, 3, "Poulet", 4.0, UnitType.PCS, 9.5);
+            runTest(dr, converter, 4, "Chocolat", 1.0, UnitType.L, 2.6);
+            runTest(dr, converter, 5, "Beurre", 1.0, UnitType.L, 2.3);
 
         } catch (Exception e) {
-            System.err.println("Erreur durant le test : " + e.getMessage());
+            System.err.println("Erreur durant les tests : " + e.getMessage());
+            e.printStackTrace();
         }
 
-        System.out.println("\n========== TEST SAUVEGARDE COMMANDE (SAVEORDER) ==========");
+        System.out.println("\n======================================================");
+        System.out.println("      TEST D'UNE COMMANDE (SAVEORDER) AVEC CONV      ");
+        System.out.println("======================================================");
 
-        // 3. Test de création d'une commande
         try {
-            Order newOrder = new Order();
-            newOrder.setReference("ORD00001");
-            newOrder.setCreationDatetime(Instant.now());
+            // On simule une commande pour tester l'intégration dans DataRetriever
+            Order order = new Order();
+            order.setReference("ORD-B-01");
+            order.setCreationDatetime(Instant.now());
 
-            // On commande une Salade fraîche (ID 1) qui utilise de la Laitue et Tomate
+            // On commande un plat qui existe (ex: Salade fraîche ID 1)
             Dish salade = dr.findDishById(1);
-            DishOrder item1 = new DishOrder(null, salade, 2); // On en veut 2 !
-
             List<DishOrder> items = new ArrayList<>();
-            items.add(item1);
-            newOrder.setDishOrders(items);
+            items.add(new DishOrder(null, salade, 1));
+            order.setDishOrders(items);
 
-            // saveOrder va utiliser le UnitConverter en interne pour vérifier les stocks
-            dr.saveOrder(newOrder);
-            System.out.println("Commande enregistrée avec succès ! Stocks vérifiés avec conversion.");
+            // saveOrder va utiliser UnitConverter pour voir si le stock suffit
+            dr.saveOrder(order);
+            System.out.println("Résultat : Commande ORD-B-01 validée (Stock suffisant après conversion).");
 
         } catch (RuntimeException e) {
-            System.out.println("Echec de la commande (normal si stock bas) : " + e.getMessage());
+            System.out.println("Résultat attendu : " + e.getMessage());
         }
     }
 
     /**
-     * Méthode utilitaire pour vérifier le stock selon le PDF
+     * Exécute la simulation du PDF pour un ingrédient donné
      */
-    private static void checkIngredientStock(DataRetriever dr, UnitConverter converter,
-                                             int id, String label, double qtyOut, UnitType unitOut) {
+    private static void runTest(DataRetriever dr, UnitConverter converter,
+                                int id, String name, double qtyOut, UnitType unitOut, double expected) {
 
+        // Récupération de l'ingrédient et ses mouvements initiaux (Stock initial)
         Ingredient ing = dr.findIngredientById(id);
-        double stockAvant = ing.getStockValueAt(Instant.now(), converter.getQuantity());
-é
-        // On simule manuellement la sortie du PDF (sans l'écrire en DB pour le test)
-        StockMovement sortie = new StockMovement(
+        double stockInitial = ing.getStockValueAt(Instant.now(), converter).getQuantity();
+
+        // Ajout du mouvement de sortie (OUT) décrit dans le tableau du PDF
+        StockMovement movement = new StockMovement(
                 null,
                 new StockValue(qtyOut, unitOut),
                 MovementTypeEnum.OUT,
                 Instant.now()
         );
-        ing.getStockMovementList().add(sortie);
+        ing.getStockMovementList().add(movement);
 
-        double sortieEnKg = converter.convert(ing.getName(), qtyOut, unitOut, UnitType.KG);
-        double stockFinal = ing.getStockValueAt(Instant.now(), converter.getQuantity());
+        // Calcul du stock final
+        double stockFinal = ing.getStockValueAt(Instant.now(), converter).getQuantity();
 
-        System.out.printf("[%s] Avant: %.1f KG | Sortie: %.1f %s (soit %.2f KG) | Final: %.2f KG\n",
-                label, stockAvant, qtyOut, unitOut, sortieEnKg, stockFinal);
+        // Calcul de la valeur de sortie en KG (pour le détail)
+        double outInKg = converter.convert(ing.getName(), qtyOut, unitOut, UnitType.KG);
+
+        // Affichage des résultats
+        System.out.printf("Ingrédient: %-10s | Stock Avant: %.1f KG | Sortie: %.1f %-3s (soit %.1f KG) | Final: %.1f KG | Status: %s\n",
+                name,
+                stockInitial,
+                qtyOut,
+                unitOut,
+                outInKg,
+                stockFinal,
+                (Math.abs(stockFinal - expected) < 0.01 ? " OK" : " ERREUR (Attendu: " + expected + ")")
+        );
     }
 }
