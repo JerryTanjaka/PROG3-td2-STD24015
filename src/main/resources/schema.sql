@@ -23,7 +23,7 @@ alter table dish
 
 alter table dish
     rename column price to selling_price;
-
+--erreur
 alter table ingredient
     drop column if exists id_dish;
 

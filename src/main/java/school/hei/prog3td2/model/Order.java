@@ -15,7 +15,9 @@ public class Order {
         this.id = id;
         this.reference = reference;
     }
+    public Order(){
 
+    }
     public Integer getId() {
         return id;
     }
