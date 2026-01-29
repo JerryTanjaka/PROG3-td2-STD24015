@@ -13,8 +13,12 @@ GRANT CONNECT ON DATABASE mini_dish_db TO mini_dish_db_manager;
 GRANT CREATE ON DATABASE mini_dish_db TO mini_dish_db_manager;
 
 -- Attribution des privilèges à l'utilisateur
-GRANT select,update,insert,delete  ON Dish TO mini_dish_db_manager;
-GRANT select,update,insert,delete  ON Ingredient TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON dish TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON ingredient TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON dish_ingredient TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON stock_movement TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON "order" TO mini_dish_db_manager;
+GRANT select,update,insert,delete  ON dish_order TO mini_dish_db_manager;
 
 GRANT USAGE, SELECT, UPDATE ON SEQUENCE ingredient_id_seq TO mini_dish_db_manager;
 GRANT USAGE, SELECT ON SEQUENCE dish_id_seq TO mini_dish_db_manager;
