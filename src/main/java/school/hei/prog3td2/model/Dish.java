@@ -45,17 +45,6 @@ public class Dish {
         this.price = price;
     }
 
-    public Double getDishCost() {
-        double totalPrice = 0;
-        for (DishIngredient dishIngredient : dishIngredients) {
-            Double quantity = dishIngredient.getQuantity();
-            if (quantity == null) {
-                throw new RuntimeException("Some ingredients have undefined quantity");
-            }
-            totalPrice = totalPrice + dishIngredient.getIngredient().getPrice() * quantity;
-        }
-        return totalPrice;
-    }
 
     public Integer getId() {
         return id;
@@ -111,5 +100,20 @@ public class Dish {
             throw new RuntimeException("Price is null");
         }
         return price - getDishCost();
+    }
+    public Double getDishCost() {
+        double totalCost = 0;
+        for (DishIngredient di : dishIngredients) {
+            // On suppose que le prix de l'ingrédient est défini pour 1 KG
+            // On convertit la quantité requise en KG avant de multiplier
+            double quantityInKg = UnitConverter.convert(
+                    di.getIngredient().getName(),
+                    di.getQuantity(),
+                    di.getUnit(),
+                    Unit.KG
+            );
+            totalCost += di.getIngredient().getPrice() * quantityInKg;
+        }
+        return totalCost;
     }
 }
