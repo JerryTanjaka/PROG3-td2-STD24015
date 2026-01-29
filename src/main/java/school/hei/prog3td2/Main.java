@@ -5,7 +5,7 @@ import school.hei.prog3td2.model.Dish;
 import school.hei.prog3td2.model.Ingredient;
 import school.hei.prog3td2.DAO.DataRetriever;
 
-
+//backup
 public class Main {
     public static void main(String[] args) {
         DataRetriever dataRetriever = new DataRetriever();
