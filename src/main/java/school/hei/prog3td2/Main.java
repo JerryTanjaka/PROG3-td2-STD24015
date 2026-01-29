@@ -32,7 +32,6 @@ public class Main {
 
             // 2. Préparation de la commande
             Order order1 = new Order();
-            order1.setReference("ORD-2026-001");
             order1.setCreationDatetime(Instant.now());
             order1.setTableOrder(occupation1);
 
