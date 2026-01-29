@@ -11,6 +11,9 @@ public class Order {
     private Integer idTable; // Ou une instance de RestaurantTable
     private Instant arrivalDatetime;
     private Instant departureDatetime;
+    private TableOrder tableOrder;
+    public TableOrder getTableOrder() { return tableOrder; }
+    public void setTableOrder(TableOrder tableOrder) { this.tableOrder = tableOrder; }
 
     // Ajoute les getters et setters correspondants
     public Order(Instant creationDatetime, List<DishOrder> dishOrderList, Integer id, String reference) {
