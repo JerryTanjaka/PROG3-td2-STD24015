@@ -76,3 +76,16 @@ create table if not exists dish_order
     id_dish  int references dish (id),
     quantity int
 );
+
+-- new schema
+-- Création de la table des tables
+CREATE TABLE IF NOT EXISTS restaurant_table (
+                                                id SERIAL PRIMARY KEY,
+                                                number INT NOT NULL UNIQUE
+);
+
+-- Modification de la table order pour inclure la table et les horaires
+ALTER TABLE "order"
+    ADD COLUMN IF NOT EXISTS id_table INT REFERENCES restaurant_table(id),
+    ADD COLUMN IF NOT EXISTS arrival_datetime TIMESTAMP WITHOUT TIME ZONE,
+    ADD COLUMN IF NOT EXISTS departure_datetime TIMESTAMP WITHOUT TIME ZONE;
