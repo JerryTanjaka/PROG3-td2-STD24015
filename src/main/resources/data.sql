@@ -34,6 +34,3 @@ values (1, 1, 1, 0.2, 'KG'),
        (3, 2, 3, 1.0, 'KG'),
        (4, 4, 4, 0.3, 'KG'),
        (5, 4, 5, 0.2, 'KG');
--- new data
-INSERT INTO restaurant_table (id, number) VALUES (1, 1), (2, 2), (3, 3)
-ON CONFLICT DO NOTHING;
