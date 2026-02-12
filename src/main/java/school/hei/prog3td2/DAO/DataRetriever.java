@@ -499,17 +499,19 @@ public class DataRetriever {
         try {
             connection.setAutoCommit(false);
 
-            // --- 1. VÉRIFICATION DE LA DISPONIBILITÉ (POUR LE BONUS) ---
-            TableOrder tableOrder = orderToSave.getTableOrder();
-            if (tableOrder == null || tableOrder.getTable() == null) {
-                throw new RuntimeException("L'occupation d'une table est obligatoire pour toute commande.");
+            // --- 1. GESTION DES CONTRAINTES D'ESPACE (TABLES) - VIA TABLEORDER ---
+
+            // On récupère l'objet TableOrder pour les dates et la table
+            TableOrder occupation = orderToSave.getTableOrder();
+            if (occupation == null || occupation.getTable() == null) {
+                throw new RuntimeException("Une table et des horaires d'occupation sont obligatoires.");
             }
 
-            Instant arrival = tableOrder.getArrivalDatetime();
-            Instant departure = tableOrder.getDepartureDatetime();
-            Integer requestedTableId = tableOrder.getTable().getId();
+            Instant arrival = occupation.getArrivalDatetime();
+            Instant departure = occupation.getDepartureDatetime();
+            Integer requestedTableId = occupation.getTable().getId();
 
-            // Récupération des tables LIBRES
+            // Requête pour trouver les numéros des tables LIBRES
             String findFreeTablesSql = """
             SELECT id, number FROM restaurant_table 
             WHERE id NOT IN (
@@ -531,27 +533,38 @@ public class DataRetriever {
                 }
             }
 
-            // Si la table demandée n'est pas libre
+            // Vérification de la disponibilité
             if (!freeTableIds.contains(requestedTableId)) {
                 if (freeTableNumbers.isEmpty()) {
-                    throw new RuntimeException("Aucune table n'est disponible pour ce créneau.");
+                    throw new RuntimeException("La table n'est pas disponible et aucune autre table n'est libre actuellement.");
                 } else {
-                    throw new RuntimeException("La table spécifiée est occupée. Tables libres : " + freeTableNumbers);
+                    throw new RuntimeException("La table spécifiée n'est pas disponible. Les tables numéro "
+                            + freeTableNumbers + " sont actuellement libres.");
                 }
             }
 
-            // --- 2. VÉRIFICATION DES STOCKS (LOGIQUE EXISTANTE) ---
+            // --- 2. VÉRIFICATION DES STOCKS D'INGRÉDIENTS ---
+
             for (DishOrder dishOrder : orderToSave.getDishOrderList()) {
                 for (DishIngredient dishIng : dishOrder.getDish().getDishIngredients()) {
-                    double reqQty = UnitConverter.convert(dishIng.getIngredient().getName(), dishIng.getQuantity(), dishIng.getUnit(), Unit.KG) * dishOrder.getQuantity();
-                    Ingredient ing = findIngredientById(connection, dishIng.getIngredient().getId());
-                    if (ing.getStockValueAt(Instant.now()).getQuantity() < reqQty) {
-                        throw new RuntimeException("Stock insuffisant : " + ing.getName());
+                    double requiredQuantity = UnitConverter.convert(
+                            dishIng.getIngredient().getName(),
+                            dishIng.getQuantity(),
+                            dishIng.getUnit(),
+                            Unit.KG
+                    ) * dishOrder.getQuantity();
+
+                    Ingredient ingredient = findIngredientById(connection, dishIng.getIngredient().getId());
+                    double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
+
+                    if (availableQuantity < requiredQuantity) {
+                        throw new RuntimeException("Insufficient stock for ingredient: " + ingredient.getName());
                     }
                 }
             }
 
-            // --- 3. INSERTION ---
+            // --- 3. INSERTION DE LA COMMANDE ---
+
             String sqlOrder = """
             INSERT INTO "order" (id, reference, creation_datetime, id_table, arrival_datetime, departure_datetime)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -564,7 +577,7 @@ public class DataRetriever {
                 ps.setString(2, orderToSave.getReference());
                 ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
 
-                // Accès propre via la hiérarchie d'objets
+                // On utilise l'objet occupation (TableOrder) pour les colonnes de la table
                 ps.setInt(4, requestedTableId);
                 ps.setTimestamp(5, Timestamp.from(arrival));
                 ps.setTimestamp(6, Timestamp.from(departure));
@@ -572,15 +585,21 @@ public class DataRetriever {
                 ps.executeUpdate();
             }
 
+            // Insertion des plats associés (dish_order)
             saveDishOrder(connection, orderToSave.getDishOrderList(), orderId);
+
             connection.commit();
             return orderToSave;
 
         } catch (Exception e) {
-            if (connection != null) connection.rollback();
+            if (connection != null) {
+                connection.rollback();
+            }
             throw new RuntimeException(e.getMessage());
         } finally {
-            if (connection != null) dbConnection.closeConnection(connection);
+            if (connection != null) {
+                dbConnection.closeConnection(connection);
+            }
         }
     }
     public void saveDishOrder(Connection conn, List<DishOrder> dishOrders, int orderId) throws SQLException {
