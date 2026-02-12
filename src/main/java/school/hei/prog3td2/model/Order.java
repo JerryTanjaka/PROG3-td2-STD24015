@@ -8,52 +8,13 @@ public class Order {
     private String reference;
     private Instant creationDatetime;
     private List<DishOrder> dishOrderList;
-    private Integer idTable; // Ou une instance de RestaurantTable
-    private Instant arrivalDatetime;
-    private Instant departureDatetime;
 
-    // Ajoute les getters et setters correspondants
     public Order(Instant creationDatetime, List<DishOrder> dishOrderList, Integer id, String reference) {
         this.creationDatetime = creationDatetime;
         this.dishOrderList = dishOrderList;
         this.id = id;
         this.reference = reference;
     }
-
-    public Order(Instant arrivalDatetime, Instant creationDatetime, Instant departureDatetime, List<DishOrder> dishOrderList, Integer id, Integer idTable, String reference) {
-        this.arrivalDatetime = arrivalDatetime;
-        this.creationDatetime = creationDatetime;
-        this.departureDatetime = departureDatetime;
-        this.dishOrderList = dishOrderList;
-        this.id = id;
-        this.idTable = idTable;
-        this.reference = reference;
-    }
-
-    public Instant getArrivalDatetime() {
-        return arrivalDatetime;
-    }
-
-    public void setArrivalDatetime(Instant arrivalDatetime) {
-        this.arrivalDatetime = arrivalDatetime;
-    }
-
-    public Instant getDepartureDatetime() {
-        return departureDatetime;
-    }
-
-    public void setDepartureDatetime(Instant departureDatetime) {
-        this.departureDatetime = departureDatetime;
-    }
-
-    public Integer getIdTable() {
-        return idTable;
-    }
-
-    public void setIdTable(Integer idTable) {
-        this.idTable = idTable;
-    }
-
     public Order(){
 
     }
