@@ -51,6 +51,30 @@ public class DataRetriever {
             throw new RuntimeException("Erreur lors du calcul du stock via SQL", e);
         }
     }
+    public Double getDishCostSQL(Integer dishId) {
+
+        String sql = """
+        SELECT SUM(di.required_quantity * i.price) as total_cost
+        FROM dish_ingredient di
+        JOIN ingredient i ON di.id_ingredient = i.id
+        WHERE di.id_dish = ?;
+    """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, dishId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("total_cost");
+            }
+            return 0.0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
         public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
         String sql = """
                 select id, id_ingredient, quantity,type,unit, creation_datetime

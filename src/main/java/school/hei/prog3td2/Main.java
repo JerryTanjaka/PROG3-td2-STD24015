@@ -4,56 +4,37 @@ import school.hei.prog3td2.DAO.DataRetriever;
 import school.hei.prog3td2.model.Dish;
 import school.hei.prog3td2.model.Ingredient;
 import school.hei.prog3td2.DAO.DataRetriever;
+import school.hei.prog3td2.model.StockValue;
 
-//backup
+import java.time.Instant;
+
 public class Main {
     public static void main(String[] args) {
         DataRetriever dataRetriever = new DataRetriever();
+        int idLaitue = 1;
+        int idPouletGrille = 2;
+        Instant maintenant = Instant.now();
 
-        System.out.println("--- TEST 1 : Récupération et Marge Brute (Salade fraîche) ---");
-        try {
-            Dish salade = dataRetriever.findDishById(1);
-            System.out.println("Nom : " + salade.getName());
-            System.out.println("Prix de vente : " + salade.getPrice());
-            System.out.println("Coût des ingrédients : " + salade.getDishCost());
-            System.out.println("Marge brute : " + salade.getGrossMargin());
-        } catch (Exception e) {
-            System.err.println("Erreur Test 1 : " + e.getMessage());
-        }
+        System.out.println("=== QUESTION 1 : COMPARAISON STOCK (Objet vs SQL) ===");
 
-        System.out.println("\n--- TEST 2 : Gestion de l'exception (Prix NULL) ---");
-        try {
-            // Le riz aux légumes (ID 3) a un prix null dans data.sql
-            Dish riz = dataRetriever.findDishById(3);
-            System.out.println("Plat : " + riz.getName() + " | Prix : " + riz.getPrice());
-            System.out.println("Tentative de calcul de marge...");
-            System.out.println("Marge : " + riz.getGrossMargin());
-        } catch (RuntimeException e) {
-            System.out.println("Succès : L'exception a bien été levée car : " + e.getMessage());
-        }
+        //  Approche Orientée Objet (Ancienne)
+//        Ingredient ing = dataRetriever.findIngredientById(idLaitue);
+//        StockValue stockJava = ing.getStockValueAt(maintenant);
+//        System.out.println("Stock (Approche Objet) : " + stockJava.getQuantity() + " " + stockJava.getUnit());
 
-        System.out.println("\n--- TEST 3 : Sauvegarde et Mise à jour du prix ---");
-        try {
-            Dish rizToUpdate = dataRetriever.findDishById(3);
-            rizToUpdate.setPrice(5000.0); // On fixe un prix
-            dataRetriever.saveDish(rizToUpdate);
+        //  Approche Push-down (Nouvelle via SQL)
+//        StockValue stockSql = dataRetriever.getStockValueAt(maintenant, idLaitue);
+//        System.out.println("Stock (Approche SQL)   : " + stockSql.getQuantity() + " " + stockSql.getUnit());
+//        System.out.println("Résultats identiques ? " + (stockJava.getQuantity().equals(stockSql.getQuantity())));
 
-            Dish rizUpdated = dataRetriever.findDishById(3);
-            System.out.println("Nouveau prix du riz : " + rizUpdated.getPrice());
-            System.out.println("Nouvelle marge brute : " + rizUpdated.getGrossMargin());
-        } catch (Exception e) {
-            System.err.println("Erreur Test 3 : " + e.getMessage());
-        }
+        System.out.println("\n=== QUESTION 2 : COÛT ET MARGE (Push-down SQL) ===");
 
-        System.out.println("\n--- TEST 4 : Coût du Poulet Grillé (Validation PDF) ---");
-        try {
-            Dish poulet = dataRetriever.findDishById(2);
-            // Selon le PDF, attendu : Coût 4500, Marge 7500
-            System.out.println("Plat : " + poulet.getName());
-            System.out.println("Coût calculé : " + poulet.getDishCost());
-            System.out.println("Marge calculée : " + poulet.getGrossMargin());
-        } catch (Exception e) {
-            System.err.println("Erreur Test 4 : " + e.getMessage());
-        }
+        // Test du Coût (2a)
+        Double coutSql = dataRetriever.getDishCostSQL(idPouletGrille);
+        System.out.println("Coût du Poulet grillé (via SQL) : " + coutSql);
+
+        // Test de la Marge (2b)
+//        Double margeSql = dataRetriever.getGrossMarginSQL(idPouletGrille);
+        System.out.println("Marge du Poulet grillé (via SQL) : " + margeSql);
     }
 }
