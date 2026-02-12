@@ -92,7 +92,7 @@ public class DataRetriever {
                 order.setDishOrderList(findDishOrderByIdOrder(idOrder));
                 return order;
             }
-            throw new RuntimeException("order not found with reference " + reference);
+            throw new RuntimeException("Order not found with reference " + reference);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -621,7 +621,7 @@ public class DataRetriever {
         String sql = """
                 select dso.id as dish_order_id, dso.id_dish as dish_order_id_dish,
                        dso.quantity as dish_order_quantity , dso.id_order as dish_order_id_order
-                from "order" o
+                from "Order" o
                 join dishorder dso on o.id = dso.id_order
                 where reference = ?;
                 """;
