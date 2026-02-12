@@ -27,14 +27,33 @@ public class Main {
 //        System.out.println("Stock (Approche SQL)   : " + stockSql.getQuantity() + " " + stockSql.getUnit());
 //        System.out.println("Résultats identiques ? " + (stockJava.getQuantity().equals(stockSql.getQuantity())));
 
-        System.out.println("\n=== QUESTION 2 : COÛT ET MARGE (Push-down SQL) ===");
 
-        // Test du Coût (2a)
-        Double coutSql = dataRetriever.getDishCostSQL(idPouletGrille);
-        System.out.println("Coût du Poulet grillé (via SQL) : " + coutSql);
+        // 2 TEST DU COÛT DU PLAT (Question 2a) ---
+        System.out.println("\n--- 2. COÛT DU PLAT (Poulet Grillé) ---");
+        // Version POO
+        Dish plat = dataRetriever.findDishById(idPouletGrille);
+        Double coutPOO = plat.getDishCost();
 
-        // Test de la Marge (2b)
-//        Double margeSql = dataRetriever.getGrossMarginSQL(idPouletGrille);
-        System.out.println("Marge du Poulet grillé (via SQL) : " + margeSql);
+        // Version Push-down
+        Double coutSQL = dataRetriever.getDishCostSQL(idPouletGrille);
+
+        System.out.println("[POO] Coût : " + coutPOO);
+        System.out.println("[SQL] Coût : " + coutSQL);
+        System.out.println("Identiques ? " + (coutPOO.equals(coutSQL) ? "OUI " : "NON "));
+
+
+        // --- 3. TEST DE LA MARGE BRUTE (Question 2b) ---
+        System.out.println("\n--- 3. MARGE BRUTE (Poulet Grillé) ---");
+        // Version POO
+        Double margePOO = plat.getGrossMargin();
+        // Version Push-down
+        Double margeSQL = dataRetriever.getGrossMarginSQL(idPouletGrille);
+
+        System.out.println("[POO] Marge : " + margePOO);
+        System.out.println("[SQL] Marge : " + margeSQL);
+        System.out.println("Identiques ? " + (margePOO.equals(margeSQL) ? "OUI " : "NON "));
+
+        System.out.println("\n");
     }
+
 }
