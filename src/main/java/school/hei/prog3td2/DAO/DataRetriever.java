@@ -9,7 +9,6 @@ import school.hei.prog3td2.model.MovementTypeEnum;
 import school.hei.prog3td2.model.Order;
 import school.hei.prog3td2.model.StockMovement;
 import school.hei.prog3td2.model.StockValue;
-import school.hei.prog3td2.model.TableOrder;
 import school.hei.prog3td2.model.Unit;
 import school.hei.prog3td2.model.UnitConverter;
 import school.hei.prog3td2.util.DBConnection;
@@ -498,20 +497,9 @@ public class DataRetriever {
 
         try {
             connection.setAutoCommit(false);
-
-            // --- 1. GESTION DES CONTRAINTES D'ESPACE (TABLES) - VIA TABLEORDER ---
-
-            // On récupère l'objet TableOrder pour les dates et la table
-            TableOrder occupation = orderToSave.getTableOrder();
-            if (occupation == null || occupation.getTable() == null) {
-                throw new RuntimeException("Une table et des horaires d'occupation sont obligatoires.");
-            }
-
-            Instant arrival = occupation.getArrivalDatetime();
-            Instant departure = occupation.getDepartureDatetime();
-            Integer requestedTableId = occupation.getTable().getId();
-
-            // Requête pour trouver les numéros des tables LIBRES
+            // --- 1. GESTION DES CONTRAINTES D'ESPACE (TABLES) ---
+            // On récupère toutes les tables libres pour le créneau demandé
+            // La logique : (Arrivée_demandée < Départ_existant) ET (Départ_demandé > Arrivée_existante)
             String findFreeTablesSql = """
             SELECT id, number FROM restaurant_table 
             WHERE id NOT IN (
@@ -519,22 +507,20 @@ public class DataRetriever {
                 WHERE (arrival_datetime < ? AND departure_datetime > ?)
             )
         """;
-
             List<Integer> freeTableIds = new ArrayList<>();
             List<Integer> freeTableNumbers = new ArrayList<>();
 
             try (PreparedStatement psFree = connection.prepareStatement(findFreeTablesSql)) {
-                psFree.setTimestamp(1, Timestamp.from(departure));
-                psFree.setTimestamp(2, Timestamp.from(arrival));
+                psFree.setTimestamp(1, Timestamp.from(orderToSave.getDepartureDatetime()));
+                psFree.setTimestamp(2, Timestamp.from(orderToSave.getArrivalDatetime()));
                 ResultSet rs = psFree.executeQuery();
                 while (rs.next()) {
                     freeTableIds.add(rs.getInt("id"));
                     freeTableNumbers.add(rs.getInt("number"));
                 }
             }
-
-            // Vérification de la disponibilité
-            if (!freeTableIds.contains(requestedTableId)) {
+            // Vérification si la table demandée est dans la liste des tables libres
+            if (!freeTableIds.contains(orderToSave.getIdTable())) {
                 if (freeTableNumbers.isEmpty()) {
                     throw new RuntimeException("La table n'est pas disponible et aucune autre table n'est libre actuellement.");
                 } else {
@@ -542,9 +528,7 @@ public class DataRetriever {
                             + freeTableNumbers + " sont actuellement libres.");
                 }
             }
-
-            // --- 2. VÉRIFICATION DES STOCKS D'INGRÉDIENTS ---
-
+            // --- 2. VÉRIFICATION DES STOCKS D'INGRÉDIENTS (TON CODE) ---
             for (DishOrder dishOrder : orderToSave.getDishOrderList()) {
                 for (DishIngredient dishIng : dishOrder.getDish().getDishIngredients()) {
                     double requiredQuantity = UnitConverter.convert(
@@ -562,30 +546,30 @@ public class DataRetriever {
                     }
                 }
             }
-
             // --- 3. INSERTION DE LA COMMANDE ---
-
             String sqlOrder = """
-            INSERT INTO "order" (id, reference, creation_datetime, id_table, arrival_datetime, departure_datetime)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO "order" (id, reference, creation_datetime, id_table, arrival_datetime, departure_datetime)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
 
-            int orderId = (orderToSave.getId() != null) ? orderToSave.getId() : getNextSerialValue(connection, "order", "id");
+            int orderId;
+            if (orderToSave.getId() != null) {
+                orderId = orderToSave.getId();
+            } else {
+                orderId = getNextSerialValue(connection, "order", "id");
+            }
 
             try (PreparedStatement ps = connection.prepareStatement(sqlOrder)) {
                 ps.setInt(1, orderId);
                 ps.setString(2, orderToSave.getReference());
                 ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
-
-                // On utilise l'objet occupation (TableOrder) pour les colonnes de la table
-                ps.setInt(4, requestedTableId);
-                ps.setTimestamp(5, Timestamp.from(arrival));
-                ps.setTimestamp(6, Timestamp.from(departure));
-
+                ps.setInt(4, orderToSave.getIdTable());
+                ps.setTimestamp(5, Timestamp.from(orderToSave.getArrivalDatetime()));
+                ps.setTimestamp(6, Timestamp.from(orderToSave.getDepartureDatetime()));
                 ps.executeUpdate();
             }
 
-            // Insertion des plats associés (dish_order)
+            // Insertion des plats de la commande
             saveDishOrder(connection, orderToSave.getDishOrderList(), orderId);
 
             connection.commit();
@@ -602,6 +586,7 @@ public class DataRetriever {
             }
         }
     }
+
     public void saveDishOrder(Connection conn, List<DishOrder> dishOrders, int orderId) throws SQLException {
         if (dishOrders.isEmpty()){
             throw new RuntimeException("No dish order found");
