@@ -494,97 +494,53 @@ public class DataRetriever {
     public Order saveOrder(Order orderToSave) throws SQLException {
         DBConnection dbConnection = new DBConnection();
         Connection connection = dbConnection.getConnection();
-
-        try {
-            connection.setAutoCommit(false);
-            // --- 1. GESTION DES CONTRAINTES D'ESPACE (TABLES) ---
-            // On récupère toutes les tables libres pour le créneau demandé
-            // La logique : (Arrivée_demandée < Départ_existant) ET (Départ_demandé > Arrivée_existante)
-            String findFreeTablesSql = """
-            SELECT id, number FROM restaurant_table 
-            WHERE id NOT IN (
-                SELECT id_table FROM "order" 
-                WHERE (arrival_datetime < ? AND departure_datetime > ?)
-            )
-        """;
-            List<Integer> freeTableIds = new ArrayList<>();
-            List<Integer> freeTableNumbers = new ArrayList<>();
-
-            try (PreparedStatement psFree = connection.prepareStatement(findFreeTablesSql)) {
-                psFree.setTimestamp(1, Timestamp.from(orderToSave.getDepartureDatetime()));
-                psFree.setTimestamp(2, Timestamp.from(orderToSave.getArrivalDatetime()));
-                ResultSet rs = psFree.executeQuery();
-                while (rs.next()) {
-                    freeTableIds.add(rs.getInt("id"));
-                    freeTableNumbers.add(rs.getInt("number"));
+        /*check if stock ingredient is sufficient */
+        for(DishOrder dishOrder: orderToSave.getDishOrderList()){
+            for (DishIngredient dishIng: dishOrder.getDish().getDishIngredients()){
+                double requiredQuantity = UnitConverter.convert(dishIng.getIngredient().getName(), dishIng.getQuantity(),dishIng.getUnit() , Unit.KG ) * dishOrder.getQuantity();
+                Ingredient ingredient = findIngredientById(connection,dishIng.getIngredient().getId());
+                double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
+                if(availableQuantity < requiredQuantity){
+                    throw new RuntimeException("Insufficient stock for ingredient: " + ingredient.getName());
                 }
-            }
-            // Vérification si la table demandée est dans la liste des tables libres
-            if (!freeTableIds.contains(orderToSave.getIdTable())) {
-                if (freeTableNumbers.isEmpty()) {
-                    throw new RuntimeException("La table n'est pas disponible et aucune autre table n'est libre actuellement.");
-                } else {
-                    throw new RuntimeException("La table spécifiée n'est pas disponible. Les tables numéro "
-                            + freeTableNumbers + " sont actuellement libres.");
-                }
-            }
-            // --- 2. VÉRIFICATION DES STOCKS D'INGRÉDIENTS (TON CODE) ---
-            for (DishOrder dishOrder : orderToSave.getDishOrderList()) {
-                for (DishIngredient dishIng : dishOrder.getDish().getDishIngredients()) {
-                    double requiredQuantity = UnitConverter.convert(
-                            dishIng.getIngredient().getName(),
-                            dishIng.getQuantity(),
-                            dishIng.getUnit(),
-                            Unit.KG
-                    ) * dishOrder.getQuantity();
-
-                    Ingredient ingredient = findIngredientById(connection, dishIng.getIngredient().getId());
-                    double availableQuantity = ingredient.getStockValueAt(Instant.now()).getQuantity();
-
-                    if (availableQuantity < requiredQuantity) {
-                        throw new RuntimeException("Insufficient stock for ingredient: " + ingredient.getName());
-                    }
-                }
-            }
-            // --- 3. INSERTION DE LA COMMANDE ---
-            String sqlOrder = """
-                INSERT INTO "order" (id, reference, creation_datetime, id_table, arrival_datetime, departure_datetime)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
-
-            int orderId;
-            if (orderToSave.getId() != null) {
-                orderId = orderToSave.getId();
-            } else {
-                orderId = getNextSerialValue(connection, "order", "id");
-            }
-
-            try (PreparedStatement ps = connection.prepareStatement(sqlOrder)) {
-                ps.setInt(1, orderId);
-                ps.setString(2, orderToSave.getReference());
-                ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
-                ps.setInt(4, orderToSave.getIdTable());
-                ps.setTimestamp(5, Timestamp.from(orderToSave.getArrivalDatetime()));
-                ps.setTimestamp(6, Timestamp.from(orderToSave.getDepartureDatetime()));
-                ps.executeUpdate();
-            }
-
-            // Insertion des plats de la commande
-            saveDishOrder(connection, orderToSave.getDishOrderList(), orderId);
-
-            connection.commit();
-            return orderToSave;
-
-        } catch (Exception e) {
-            if (connection != null) {
-                connection.rollback();
-            }
-            throw new RuntimeException(e.getMessage());
-        } finally {
-            if (connection != null) {
-                dbConnection.closeConnection(connection);
             }
         }
+        String sql = """
+                insert into "Order" (id, reference, creation_datetime)
+                values (?, ?, ?)
+                """;
+
+        try(PreparedStatement ps = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
+
+            /* Insert dishorder */
+
+            int orderId;
+            if(orderToSave.getId() != null){
+                orderId = orderToSave.getId();
+            } else {
+                orderId = getNextSerialValue(connection, "Order", "id");
+            }
+            ps.setInt(1, orderId);
+
+            ps.setString(2, orderToSave.getReference());
+            ps.setTimestamp(3, Timestamp.from(orderToSave.getCreationDatetime()));
+            ps.executeUpdate();
+            try{
+                saveDishOrder(connection, orderToSave.getDishOrderList(), orderId);
+            } catch (RuntimeException e) {
+                throw new RuntimeException(e);
+            }
+            connection.commit();
+            dbConnection.closeConnection(connection);
+            return orderToSave;
+        } catch (SQLException e) {
+            connection.rollback();
+            throw new RuntimeException(e);
+        }finally {
+            dbConnection.closeConnection(connection);
+        }
+
     }
 
     public void saveDishOrder(Connection conn, List<DishOrder> dishOrders, int orderId) throws SQLException {
@@ -649,26 +605,5 @@ public class DataRetriever {
         }
     }
 
-//chercher les tables fispo
-    public List<Integer> getAvailableTableNumbers(Connection conn, Instant arrival, Instant departure) {
-        List<Integer> availableTables = new ArrayList<>();
-        String sql = """
-        SELECT number FROM restaurant_table 
-        WHERE id NOT IN (
-            SELECT id_table FROM "order" 
-            WHERE (arrival_datetime < ? AND departure_datetime > ?)
-        )
-    """;
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, Timestamp.from(departure));
-            ps.setTimestamp(2, Timestamp.from(arrival));
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                availableTables.add(rs.getInt("number"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return availableTables;
-    }
+
 }
