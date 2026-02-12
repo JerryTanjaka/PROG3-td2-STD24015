@@ -25,7 +25,7 @@ public class DataRetriever {
     public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
         String sql = """
                 select id, id_ingredient, quantity,type,unit, creation_datetime
-                from stock_movement
+                from stockmovement
                 where id_ingredient = ?;
                 """;
         try(PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
@@ -484,7 +484,7 @@ public class DataRetriever {
 
     private void updateSequenceNextValue(Connection conn, String tableName, String columnName, String sequenceName) throws SQLException {
         String setValSql = String.format(
-                "SELECT setval('%s', (SELECT COALESCE(MAX(%s), 0) FROM \"%s\"))",
+                "SELECT setval('%s', (SELECT COALESCE(MAX(%s), 0) FROM %s))",
                 sequenceName, columnName, tableName
         );
 
@@ -588,7 +588,7 @@ public class DataRetriever {
             throw new RuntimeException("No dish order found");
         }
         String dishOrderSql = """
-                insert into dish_order (id, id_order, id_dish, quantity) values
+                insert into dishorder (id, id_order, id_dish, quantity) values
                 (? , ? ,? ,?)
                 returning id;
                 """;
@@ -600,7 +600,7 @@ public class DataRetriever {
 
                 }
                 else{
-                    ps.setInt(1, getNextSerialValue(conn, "dish_order", "id"));
+                    ps.setInt(1, getNextSerialValue(conn, "dishorder", "id"));
                 }
                 ps.setInt(2 , orderId);
                 ps.setInt(3 , dishOrder.getDish().getId());
@@ -618,7 +618,7 @@ public class DataRetriever {
                 select dso.id as dish_order_id, dso.id_dish as dish_order_id_dish,
                        dso.quantity as dish_order_quantity , dso.id_order as dish_order_id_order
                 from "order" o
-                join dish_order dso on o.id = dso.id_order
+                join dishorder dso on o.id = dso.id_order
                 where reference = ?;
                 """;
         DBConnection dbConnection = new DBConnection();
