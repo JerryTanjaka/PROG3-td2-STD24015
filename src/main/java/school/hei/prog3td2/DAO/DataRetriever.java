@@ -74,7 +74,30 @@ public class DataRetriever {
             throw new RuntimeException(e);
         }
     }
+    public Double getGrossMarginSQL(Integer dishId) {
+        String sql = """
+        SELECT (d.selling_price - SUM(di.required_quantity * i.price)) as margin
+        FROM dish d
+        JOIN dish_ingredient di ON d.id = di.id_dish
+        JOIN ingredient i ON di.id_ingredient = i.id
+        WHERE d.id = ?
+        GROUP BY d.selling_price;
+    """;
 
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, dishId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("margin");
+            }
+            return 0.0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
         public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
         String sql = """
                 select id, id_ingredient, quantity,type,unit, creation_datetime
