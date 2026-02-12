@@ -37,6 +37,3 @@ values (1, 1, 1, 0.2, 'KG'),
 -- new data
 INSERT INTO restaurant_table (id, number) VALUES (1, 1), (2, 2), (3, 3)
 ON CONFLICT DO NOTHING;
--- if you want to delete
---DELETE FROM dish_order;
---DELETE FROM "order";
