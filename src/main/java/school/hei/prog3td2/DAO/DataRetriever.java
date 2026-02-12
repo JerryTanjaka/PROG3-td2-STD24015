@@ -21,7 +21,37 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DataRetriever {
-    public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
+    public StockValue getStockValueAt(Instant t, Integer ingredientId) {
+        String sql = """
+            SELECT unit,
+                   SUM(CASE WHEN type = 'OUT' THEN -quantity ELSE quantity END) as actual_quantity
+            FROM stock_movement
+            WHERE id_ingredient = ? AND creation_datetime <= ?
+            GROUP BY unit;
+            """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, ingredientId);
+            preparedStatement.setTimestamp(2, Timestamp.from(t));
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                StockValue stockValue = new StockValue();
+                stockValue.setQuantity(resultSet.getDouble("actual_quantity"));
+                stockValue.setUnit(Unit.valueOf(resultSet.getString("unit")));
+                return stockValue;
+            }
+
+            return new StockValue(0.0, Unit.KG);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors du calcul du stock via SQL", e);
+        }
+    }
+        public List<StockMovement> getStockMovementByIngredientId(Connection conn , int id){
         String sql = """
                 select id, id_ingredient, quantity,type,unit, creation_datetime
                 from stockmovement
